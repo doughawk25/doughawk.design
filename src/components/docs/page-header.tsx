@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { fadeIn } from "@/lib/motion"
-import { sectionByPath } from "@/lib/tokens"
+import { pageNumberByPath } from "@/lib/tokens"
 
 export function PageHeader({
   title,
@@ -13,9 +13,9 @@ export function PageHeader({
   description: string
 }) {
   const pathname = usePathname()
-  const section = sectionByPath[pathname]
+  const pageNumber = pageNumberByPath[pathname]
   const displayTitle =
-    section === "Tokens" && title.endsWith(" Tokens")
+    title.endsWith(" Tokens")
       ? title.slice(0, -" Tokens".length)
       : title
 
@@ -26,9 +26,9 @@ export function PageHeader({
       initial="initial"
       animate="animate"
     >
-      {section != null && (
+      {pageNumber != null && (
         <span className="col-start-1 font-mono text-xs text-muted-foreground">
-          {section}
+          {pageNumber}
         </span>
       )}
       <h1 className="col-start-2 w-fit justify-self-center text-center text-3xl font-bold tracking-tight">

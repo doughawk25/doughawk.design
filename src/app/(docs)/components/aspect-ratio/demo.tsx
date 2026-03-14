@@ -19,7 +19,7 @@ const commonRatios = [
 
 function getAspectRatioCode(code: string) {
   return `<AspectRatio ratio={${code}}>
-  <img src="..." alt="Photo" />
+  <img src="/example-bg.png" alt="Photo" />
 </AspectRatio>`
 }
 
@@ -37,11 +37,13 @@ export function AspectRatioDemo() {
     <ComponentPreview
       name="Aspect Ratio"
       description="Displays content within a desired ratio."
+      fitContent
+      showBgToggle={false}
       code={`<AspectRatio ratio={16 / 9}>
-  <img src="..." alt="Photo" />
+  <img src="/example-bg.png" alt="Photo" />
 </AspectRatio>`}
     >
-      <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 [&>button]:min-w-0">
+      <div className="grid w-full min-w-0 grid-cols-2 gap-6 px-6 py-10 sm:grid-cols-3 sm:gap-8 sm:py-12 lg:grid-cols-4 [&>button]:min-w-0">
         {commonRatios.map(({ ratio, label, code }) => (
           <button
             key={label}

@@ -10,6 +10,7 @@ export function BreadcrumbDemo() {
     <ComponentPreview
       name="Breadcrumb"
       description="Navigation breadcrumbs showing the current page hierarchy."
+      showBgToggle={false}
       code={`<Breadcrumb>
   <BreadcrumbList>
     <BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem>

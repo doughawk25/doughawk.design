@@ -13,6 +13,7 @@ export function DialogDemo() {
     <ComponentPreview
       name="Dialog"
       description="A window overlaid on the primary content, rendering content on top."
+      showBgToggle={false}
       code={`<Dialog>
   <DialogTrigger render={<Button />}>Open</DialogTrigger>
   <DialogContent>

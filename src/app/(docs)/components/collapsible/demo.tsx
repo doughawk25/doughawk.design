@@ -14,6 +14,7 @@ export function CollapsibleDemo() {
     <ComponentPreview
       name="Collapsible"
       description="An interactive component which expands/collapses a panel."
+      showBgToggle={false}
       code={`<Collapsible>
   <CollapsibleTrigger>Toggle</CollapsibleTrigger>
   <CollapsibleContent>Content</CollapsibleContent>

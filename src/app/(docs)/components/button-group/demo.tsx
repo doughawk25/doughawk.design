@@ -11,6 +11,7 @@ export function ButtonGroupDemo() {
     <ComponentPreview
       name="Button Group"
       description="Groups multiple buttons together visually."
+      showBgToggle={false}
       code={`<ButtonGroup>
   <Button variant="outline">Left</Button>
   <Button variant="outline">Center</Button>

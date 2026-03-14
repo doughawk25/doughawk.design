@@ -1,8 +1,10 @@
 "use client"
 
+import { ListIcon, LayoutGridIcon } from "lucide-react"
 import { PageHeader } from "@/components/docs/page-header"
 import { Card } from "@/components/ui/card"
 import { TokenTable } from "@/components/docs/token-table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motionTokens } from "@/lib/tokens"
 
 function parseCubicBezier(value: string): [number, number, number, number] | null {
@@ -87,6 +89,7 @@ export default function TokensMotionPage() {
     ([name, token]) => ({
       name,
       values: { value: token.value, description: token.description },
+      raw: token,
     })
   )
 
@@ -94,6 +97,7 @@ export default function TokensMotionPage() {
     ([name, token]) => ({
       name,
       values: { value: token.value, description: token.description },
+      raw: token,
     })
   )
 
@@ -106,62 +110,136 @@ export default function TokensMotionPage() {
 
       <section className="space-y-8">
         <div>
-          <h2 className="text-lg font-semibold mb-4">Duration</h2>
-          <TokenTable
-            tokens={durationRows}
-            columns={[
-              { key: "value", label: "Value" },
-              { key: "description", label: "Usage" },
-            ]}
-          />
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {Object.entries(motionTokens.duration).map(([key, token]) => (
-              <Card key={key} className="p-4 group cursor-pointer">
-                <p className="text-sm font-medium mb-2">{token.label}</p>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-primary w-0 group-hover:w-full"
-                    style={{
-                      transition: `width ${token.value} ease-out`,
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 font-mono">
-                  {token.value}
-                </p>
-              </Card>
-            ))}
-          </div>
+          <Tabs defaultValue="table" className="w-full">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <h2 className="text-lg font-semibold">Duration</h2>
+              <TabsList>
+                <TabsTrigger value="table">
+                  <ListIcon className="size-4" />
+                </TabsTrigger>
+                <TabsTrigger value="cards">
+                  <LayoutGridIcon className="size-4" />
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value="table">
+              <TokenTable
+                tokens={durationRows}
+                rowClassName="group"
+                columns={[
+                  { key: "value", label: "Value" },
+                  { key: "description", label: "Usage" },
+                  {
+                    key: "example",
+                    label: "Example",
+                    render: (row) => {
+                      const token = row.raw as (typeof motionTokens.duration)[keyof typeof motionTokens.duration]
+                      if (!token) return null
+                      return (
+                        <div className="block w-full min-w-32 cursor-pointer py-1">
+                          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-primary w-0 group-hover:w-full"
+                              style={{
+                                transition: `width ${token.value} ease-out`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    },
+                  },
+                ]}
+              />
+            </TabsContent>
+            <TabsContent value="cards">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {Object.entries(motionTokens.duration).map(([key, token]) => (
+                  <Card key={key} className="p-6 group cursor-pointer">
+                    <p className="text-base font-medium mb-3">{token.label}</p>
+                    <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-primary w-0 group-hover:w-full"
+                        style={{
+                          transition: `width ${token.value} ease-out`,
+                        }}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2 font-mono">
+                      {token.value}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-4">Easing</h2>
-          <TokenTable
-            tokens={easingRows}
-            columns={[
-              { key: "value", label: "Value" },
-              { key: "description", label: "Usage" },
-            ]}
-          />
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {Object.entries(motionTokens.easing).map(([key, token]) => (
-              <Card key={key} className="p-4 group cursor-pointer">
-                <p className="text-sm font-medium mb-2">{token.label}</p>
-                <EasingCurveGraph value={token.value} />
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden mt-2">
-                  <div
-                    className="h-full rounded-full bg-primary w-0 group-hover:w-full"
-                    style={{
-                      transition: `width 400ms ${token.value}`,
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 font-mono truncate" title={token.value}>
-                  {token.value}
-                </p>
-              </Card>
-            ))}
-          </div>
+          <Tabs defaultValue="table" className="w-full">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <h2 className="text-lg font-semibold">Easing</h2>
+              <TabsList>
+              <TabsTrigger value="table">
+                <ListIcon className="size-4" />
+              </TabsTrigger>
+              <TabsTrigger value="cards">
+                <LayoutGridIcon className="size-4" />
+              </TabsTrigger>
+            </TabsList>
+            </div>
+            <TabsContent value="table">
+              <TokenTable
+                tokens={easingRows}
+                rowClassName="group"
+                columns={[
+                  { key: "value", label: "Value" },
+                  { key: "description", label: "Usage" },
+                  {
+                    key: "example",
+                    label: "Example",
+                    render: (row) => {
+                      const token = row.raw as (typeof motionTokens.easing)[keyof typeof motionTokens.easing]
+                      if (!token) return null
+                      return (
+                        <div className="block w-full min-w-32 cursor-pointer py-1">
+                          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-primary w-0 group-hover:w-full"
+                              style={{
+                                transition: `width 400ms ${token.value}`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )
+                    },
+                  },
+                ]}
+              />
+            </TabsContent>
+            <TabsContent value="cards">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {Object.entries(motionTokens.easing).map(([key, token]) => (
+                  <Card key={key} className="p-6 group cursor-pointer">
+                    <p className="text-base font-medium mb-3">{token.label}</p>
+                    <EasingCurveGraph value={token.value} />
+                    <div className="h-3 w-full rounded-full bg-muted overflow-hidden mt-3">
+                      <div
+                        className="h-full rounded-full bg-primary w-0 group-hover:w-full"
+                        style={{
+                          transition: `width 400ms ${token.value}`,
+                        }}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2 font-mono truncate" title={token.value}>
+                      {token.value}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
     </>

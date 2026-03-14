@@ -4,31 +4,40 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
-import { Switch } from "@/components/ui/switch"
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard"
-import { CheckIcon, CopyIcon } from "lucide-react"
-
-const PREVIEW_BACKGROUND_IMAGE =
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80"
+import { CheckIcon, CopyIcon, Image, Square } from "lucide-react"
 
 export function ComponentPreview({
   name,
   description,
   code,
   children,
+  fitContent,
+  showBgToggle = true,
 }: {
   name: string
   description: string
   code: string
   children: React.ReactNode
+  /** When true, container grows to fit content instead of fixed 16:9 ratio */
+  fitContent?: boolean
+  /** When false, hides the background image toggle. Default true. */
+  showBgToggle?: boolean
 }) {
   const pathname = usePathname()
   const { copied, copy } = useCopyToClipboard()
   const [activeTab, setActiveTab] = useState("preview")
-  const [imageBehind, setImageBehind] = useState(false)
+  const [showBgImage, setShowBgImage] = useState(false)
 
   const isComponentPage = pathname.startsWith("/components/")
   const showTitle = !isComponentPage
+
+  const previewBgClass = showBgImage
+    ? "bg-cover bg-center"
+    : "bg-muted/50"
+  const previewBgStyle = showBgImage
+    ? { backgroundImage: "url(/example-bg.png)" }
+    : undefined
 
   return (
     <div className="mb-8">
@@ -39,40 +48,50 @@ export function ComponentPreview({
         </>
       )}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 mb-2">
           <TabsList>
             <TabsTrigger value="preview">Preview</TabsTrigger>
             <TabsTrigger value="code">Code</TabsTrigger>
           </TabsList>
-          <Switch
-            id={`${name}-image-behind`}
-            checked={imageBehind}
-            onCheckedChange={setImageBehind}
-            aria-label="Image behind"
-          />
+          {activeTab === "preview" && showBgToggle && (
+            <Tabs
+              value={showBgImage ? "image" : "plain"}
+              onValueChange={(v) => setShowBgImage(v === "image")}
+            >
+              <TabsList>
+                <TabsTrigger value="plain" aria-label="Plain background">
+                  <Square className="size-4" />
+                </TabsTrigger>
+                <TabsTrigger value="image" aria-label="Image background">
+                  <Image className="size-4" />
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
         </div>
         <TabsContent value="preview">
-          <AspectRatio
-            ratio={16 / 9}
-            className="overflow-hidden rounded-[var(--radius-surface)]"
-          >
-            {imageBehind ? (
-              <>
-                <img
-                  src={PREVIEW_BACKGROUND_IMAGE}
-                  alt="Photo"
-                  className="absolute inset-0 size-full object-cover"
-                />
-                <div className="absolute inset-0 flex items-center justify-center p-8">
-                  {children}
-                </div>
-              </>
-            ) : (
-              <div className="flex size-full items-center justify-center bg-muted/50 p-8">
+          {fitContent ? (
+            <div
+              className={`overflow-auto rounded-[var(--radius-surface)] ${previewBgClass}`}
+              style={previewBgStyle}
+            >
+              <div className="flex min-w-0 items-center justify-center px-8 py-6">
                 {children}
               </div>
-            )}
-          </AspectRatio>
+            </div>
+          ) : (
+            <AspectRatio
+              ratio={16 / 9}
+              className="overflow-auto rounded-[var(--radius-surface)]"
+            >
+              <div
+                className={`flex size-full min-h-0 min-w-0 items-center justify-center overflow-auto px-8 py-6 ${previewBgClass}`}
+                style={previewBgStyle}
+              >
+                {children}
+              </div>
+            </AspectRatio>
+          )}
         </TabsContent>
         <TabsContent value="code">
           <div className="relative">

@@ -10,6 +10,7 @@ export function BadgeDemo() {
     <ComponentPreview
       name="Badge"
       description="Compact label for status, categories, or counts."
+      showBgToggle={false}
       code={`<Badge>Default</Badge>
 <Badge variant="secondary">Secondary</Badge>
 <Badge variant="outline">Outline</Badge>

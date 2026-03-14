@@ -5,17 +5,19 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useSystemAuth } from "@/components/docs/system-auth-provider"
 
 const items = [
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-  { label: "Work", href: "/work" },
-  { label: "Archive", href: "/archive" },
-  { label: "System", href: "/foundation/logo" },
+  { label: "About", href: "/about", locked: true },
+  { label: "Contact", href: "/contact", locked: true },
+  { label: "Work", href: "/work", locked: true },
+  { label: "Archive", href: "/archive", locked: true },
+  { label: "System", href: "/system", locked: false },
 ] as const
 
 export function HomeNav() {
   const pathname = usePathname()
+  const auth = useSystemAuth()
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [lastHoveredIndex, setLastHoveredIndex] = useState<number | null>(null)
 
@@ -23,8 +25,15 @@ export function HomeNav() {
     if (hoveredIndex !== null) setLastHoveredIndex(hoveredIndex)
   }, [hoveredIndex])
 
+  const isSystemPage =
+    pathname === "/system" ||
+    pathname.startsWith("/foundation") ||
+    pathname.startsWith("/tokens") ||
+    pathname.startsWith("/components") ||
+    pathname === "/motion"
+
   const activeIndex = items.findIndex((item) => {
-    if (pathname === "/") return item.href === "/foundation/logo"
+    if (item.href === "/system") return isSystemPage
     return pathname === item.href || pathname.startsWith(item.href + "/")
   })
 
@@ -37,6 +46,14 @@ export function HomeNav() {
         <Link
           key={item.href}
           href={item.href}
+          onClick={
+            item.locked && auth
+              ? (e) => {
+                  e.preventDefault()
+                  auth.openModalForRedirect(item.href)
+                }
+              : undefined
+          }
           className={cn(
             "relative z-10 flex h-9 w-full items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors",
             (hoveredIndex === null || hoveredIndex === i) ? "text-primary" : "text-muted-foreground"

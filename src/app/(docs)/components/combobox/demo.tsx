@@ -12,6 +12,7 @@ export function ComboboxDemo() {
     <ComponentPreview
       name="Combobox"
       description="Autocomplete input with a filterable dropdown list."
+      showBgToggle={false}
       code={`<Combobox value={value} onValueChange={setValue}>
   <ComboboxTrigger>
     <ComboboxInput placeholder="Search..." />

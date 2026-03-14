@@ -10,6 +10,7 @@ export function DrawerDemo() {
     <ComponentPreview
       name="Drawer"
       description="A panel that slides in from the edge of the screen."
+      showBgToggle={false}
       code={`<Drawer>
   <DrawerTrigger asChild><Button>Open</Button></DrawerTrigger>
   <DrawerContent>

@@ -9,6 +9,7 @@ export function AccordionDemo() {
     <ComponentPreview
       name="Accordion"
       description="Vertically stacked set of interactive headings that reveal content."
+      showBgToggle={false}
       code={`<Accordion className="w-full">
   <AccordionItem>
     <AccordionTrigger>Is it accessible?</AccordionTrigger>

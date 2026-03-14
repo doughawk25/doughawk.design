@@ -22,7 +22,7 @@ export function ColorSwatch({
       className={`group text-left ${className ?? ""}`}
     >
       <div
-        className="h-16 w-full rounded-lg border border-border shadow-sm transition-shadow group-hover:shadow-md"
+        className="h-16 w-full rounded-lg border border-border transition-shadow duration-[400ms] group-hover:shadow-md"
         style={{ backgroundColor: value }}
       />
       <div className="mt-2 flex items-center justify-between">

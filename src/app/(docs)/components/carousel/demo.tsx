@@ -11,6 +11,7 @@ export function CarouselDemo() {
     <ComponentPreview
       name="Carousel"
       description="A slideshow component for cycling through elements."
+      showBgToggle={false}
       code={`<Carousel>
   <CarouselContent>
     <CarouselItem>Slide 1</CarouselItem>

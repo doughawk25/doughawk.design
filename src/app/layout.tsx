@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google"
+import { Providers } from "./providers"
 import "./globals.css"
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -25,9 +26,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}>
       <body className={`${ibmPlexSans.className} antialiased`}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

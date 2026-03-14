@@ -355,6 +355,28 @@ export const radiiSemanticTokens = {
   pill: { value: "var(--radius-pill)", label: "Pill", description: "Avatar, pill badges" },
 } as const
 
+/** Shadow tokens — Tailwind v4 defaults. Use via shadow-sm, shadow-md, etc. or var(--shadow-*). */
+export const shadowTokens = {
+  "2xs": { value: "0 1px rgb(0 0 0 / 0.05)", label: "2XS", description: "Minimal shadow", tailwind: "shadow-2xs" },
+  xs: { value: "0 1px 2px 0 rgb(0 0 0 / 0.05)", label: "XS", description: "Subtle shadow", tailwind: "shadow-xs" },
+  sm: { value: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)", label: "SM", description: "Cards, hover states", tailwind: "shadow-sm" },
+  md: { value: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)", label: "MD", description: "Dropdowns, popovers", tailwind: "shadow-md" },
+  lg: { value: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", label: "LG", description: "Modals, overlays", tailwind: "shadow-lg" },
+  xl: { value: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)", label: "XL", description: "Elevated surfaces", tailwind: "shadow-xl" },
+  "2xl": { value: "0 25px 50px -12px rgb(0 0 0 / 0.25)", label: "2XL", description: "Strong elevation", tailwind: "shadow-2xl" },
+} as const
+
+/** Blur tokens — Tailwind v4 defaults. Use via backdrop-blur-sm, etc. or var(--blur-*). */
+export const blurTokens = {
+  xs: { value: "4px", label: "XS", description: "Subtle backdrop blur", tailwind: "backdrop-blur-xs" },
+  sm: { value: "8px", label: "SM", description: "Light blur", tailwind: "backdrop-blur-sm" },
+  md: { value: "12px", label: "MD", description: "Modal overlays", tailwind: "backdrop-blur-md" },
+  lg: { value: "16px", label: "LG", description: "Strong blur", tailwind: "backdrop-blur-lg" },
+  xl: { value: "24px", label: "XL", description: "Heavy blur", tailwind: "backdrop-blur-xl" },
+  "2xl": { value: "40px", label: "2XL", description: "Maximum blur", tailwind: "backdrop-blur-2xl" },
+  "3xl": { value: "64px", label: "3XL", description: "Extreme blur", tailwind: "backdrop-blur-3xl" },
+} as const
+
 export const motionTokens = {
   duration: {
     fast: { value: "150ms", label: "Fast", description: "Micro-interactions, toggles, tooltips" },
@@ -408,6 +430,7 @@ export const navigation = [
       { title: "Typography", href: "/tokens/typography" },
       { title: "Spacing", href: "/tokens/spacing" },
       { title: "Radii", href: "/tokens/radii" },
+      { title: "Effects", href: "/tokens/effects" },
       { title: "Motion", href: "/tokens/motion" },
     ],
   },
@@ -428,6 +451,7 @@ export const navigation = [
 
 // Section name by route (for page header)
 export const sectionByPath: Record<string, string> = {
+  "/system": "System",
   "/components": "Components",
   ...Object.fromEntries(
     navigation.flatMap((section) =>
@@ -435,3 +459,14 @@ export const sectionByPath: Record<string, string> = {
     )
   ),
 }
+
+// Page number by route (01, 02, etc. — restarts per section; accordion is 01)
+export const pageNumberByPath: Record<string, string> = (() => {
+  const result: Record<string, string> = { "/system": "01" }
+  for (const section of navigation) {
+    for (const [index, item] of section.items.entries()) {
+      result[item.href] = String(index + 1).padStart(2, "0")
+    }
+  }
+  return result
+})()

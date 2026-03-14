@@ -10,6 +10,7 @@ export function ButtonDemo() {
     <ComponentPreview
       name="Button"
       description="Primary action element with multiple variants and sizes."
+      showBgToggle={false}
       code={`<Button>Default</Button>
 <Button variant="secondary">Secondary</Button>
 <Button variant="outline">Outline</Button>
