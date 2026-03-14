@@ -17,7 +17,7 @@ export default function TokensColorPage() {
       {Object.entries(colorTokens).map(([category, tokens]) => (
         <section key={category} className="mb-8">
           <h2 className="text-lg font-semibold mb-4 capitalize">{category}</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 items-start gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {Object.entries(tokens).map(([name, token]) => (
               <ColorSwatch
                 key={name}
