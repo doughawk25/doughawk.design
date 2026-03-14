@@ -2,8 +2,60 @@
 
 import * as React from "react"
 import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+
+const tintFallbackVariants = cva(
+  "flex size-full items-center justify-center rounded-full text-sm group-data-[size=sm]/avatar:text-xs",
+  {
+    variants: {
+      variant: {
+        neutral: "bg-tint-neutral text-tint-neutral-fg",
+        zinc: "bg-tint-zinc text-tint-zinc-fg",
+        slate: "bg-tint-slate text-tint-slate-fg",
+        stone: "bg-tint-stone text-tint-stone-fg",
+        gray: "bg-tint-gray text-tint-gray-fg",
+        red: "bg-tint-red text-tint-red-fg",
+        orange: "bg-tint-orange text-tint-orange-fg",
+        amber: "bg-tint-amber text-tint-amber-fg",
+        yellow: "bg-tint-yellow text-tint-yellow-fg",
+        green: "bg-tint-green text-tint-green-fg",
+        teal: "bg-tint-teal text-tint-teal-fg",
+        cyan: "bg-tint-cyan text-tint-cyan-fg",
+        blue: "bg-tint-blue text-tint-blue-fg",
+        indigo: "bg-tint-indigo text-tint-indigo-fg",
+        violet: "bg-tint-violet text-tint-violet-fg",
+        purple: "bg-tint-purple text-tint-purple-fg",
+        pink: "bg-tint-pink text-tint-pink-fg",
+        rose: "bg-tint-rose text-tint-rose-fg",
+      },
+    },
+    defaultVariants: {
+      variant: "neutral",
+    },
+  }
+)
+
+export type TintVariant =
+  | "neutral"
+  | "zinc"
+  | "slate"
+  | "stone"
+  | "gray"
+  | "red"
+  | "orange"
+  | "amber"
+  | "yellow"
+  | "green"
+  | "teal"
+  | "cyan"
+  | "blue"
+  | "indigo"
+  | "violet"
+  | "purple"
+  | "pink"
+  | "rose"
 
 function Avatar({
   className,
@@ -40,15 +92,15 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
 
 function AvatarFallback({
   className,
+  variant = "neutral",
   ...props
-}: AvatarPrimitive.Fallback.Props) {
+}: AvatarPrimitive.Fallback.Props &
+  VariantProps<typeof tintFallbackVariants>) {
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
-      className={cn(
-        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
-        className
-      )}
+      data-variant={variant}
+      className={cn(tintFallbackVariants({ variant }), className)}
       {...props}
     />
   )

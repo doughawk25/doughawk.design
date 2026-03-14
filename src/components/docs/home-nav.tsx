@@ -39,7 +39,7 @@ export function HomeNav() {
           href={item.href}
           className={cn(
             "relative z-10 flex h-9 w-full items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors",
-            hoveredIndex === i ? "text-foreground" : "text-muted-foreground"
+            (hoveredIndex === null || hoveredIndex === i) ? "text-primary" : "text-muted-foreground"
           )}
           onMouseEnter={() => setHoveredIndex(i)}
         >
@@ -47,7 +47,7 @@ export function HomeNav() {
         </Link>
       ))}
       <motion.div
-        className="pointer-events-none absolute left-0 right-0 z-0 h-9 rounded-lg bg-muted"
+        className="pointer-events-none absolute inset-x-8 z-0 h-9 rounded-lg bg-muted"
         initial={false}
         animate={{
           opacity: hoveredIndex !== null ? 1 : 0,

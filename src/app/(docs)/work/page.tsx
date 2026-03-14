@@ -7,11 +7,6 @@ export default function WorkPage() {
         title="Work"
         description="Explore our work and projects."
       />
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
-        <p className="text-muted-foreground">
-          Selected projects and case studies from the Monad design system in action.
-        </p>
-      </div>
     </>
   )
 }

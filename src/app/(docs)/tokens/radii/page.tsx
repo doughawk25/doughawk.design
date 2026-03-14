@@ -8,7 +8,7 @@ export default function TokensRadiiPage() {
   return (
     <>
       <PageHeader
-        title="Border Radius Tokens"
+        title="Radii"
         description="Border radius values used across all components."
       />
 

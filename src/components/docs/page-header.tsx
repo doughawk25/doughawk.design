@@ -21,7 +21,7 @@ export function PageHeader({
 
   return (
     <motion.div
-      className="mb-4 grid w-full grid-cols-[1fr_auto_1fr] items-start gap-x-4 gap-y-1"
+      className="mb-4 grid w-full grid-cols-[1fr_auto_1fr] items-start gap-x-4 gap-y-1 pb-6"
       variants={fadeIn}
       initial="initial"
       animate="animate"

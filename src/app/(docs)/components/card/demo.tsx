@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ComponentPreview } from "@/components/docs/component-preview"
 
 export function CardDemo() {
-  
   return (
     <ComponentPreview
       name="Card"
@@ -19,14 +18,14 @@ export function CardDemo() {
 </Card>`}
     >
       <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Card Title</CardTitle>
-        <CardDescription>Card description goes here.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm">Card content</p>
-      </CardContent>
-    </Card>
+        <CardHeader>
+          <CardTitle>Card Title</CardTitle>
+          <CardDescription>Card description goes here.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm">Card content</p>
+        </CardContent>
+      </Card>
     </ComponentPreview>
   )
 }

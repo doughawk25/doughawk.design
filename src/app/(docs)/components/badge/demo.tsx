@@ -13,13 +13,18 @@ export function BadgeDemo() {
       code={`<Badge>Default</Badge>
 <Badge variant="secondary">Secondary</Badge>
 <Badge variant="outline">Outline</Badge>
-<Badge variant="destructive">Destructive</Badge>`}
+<Badge variant="destructive">Destructive</Badge>
+<Badge variant="blue">Blue</Badge>`}
     >
       <div className="flex flex-wrap gap-3">
       <Badge>Default</Badge>
       <Badge variant="secondary">Secondary</Badge>
       <Badge variant="outline">Outline</Badge>
       <Badge variant="destructive">Destructive</Badge>
+      <Badge variant="neutral">Neutral</Badge>
+      <Badge variant="blue">Blue</Badge>
+      <Badge variant="green">Green</Badge>
+      <Badge variant="amber">Amber</Badge>
     </div>
     </ComponentPreview>
   )
