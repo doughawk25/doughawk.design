@@ -425,3 +425,13 @@ export const navigation = [
     ],
   },
 ] as const
+
+// Section name by route (for page header)
+export const sectionByPath: Record<string, string> = {
+  "/components": "Components",
+  ...Object.fromEntries(
+    navigation.flatMap((section) =>
+      section.items.map((item) => [item.href, section.title])
+    )
+  ),
+}
