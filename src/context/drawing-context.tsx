@@ -35,7 +35,7 @@ export function DrawingProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'cursor' | 'pen'>('cursor')
   const [menuOpen, setMenuOpen] = useState(true)
   const [brushSize, setBrushSize] = useState(3)
-  const [brushColor, setBrushColor] = useState('#0a0a0a')
+  const [brushColor, setBrushColor] = useState('#3b82f6')
   const [history, setHistory] = useState<StrokePath[]>(() => {
     if (typeof window === 'undefined') return []
     try {
