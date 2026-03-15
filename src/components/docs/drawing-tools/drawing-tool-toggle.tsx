@@ -1,12 +1,15 @@
 'use client'
 
 import { useDrawingContext } from '@/context/drawing-context'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Pen, Pointer, Trash2 } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Toggle } from '@/components/ui/toggle'
+import { Pen, Pointer, Plus, Trash2 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
+import { cn } from '@/lib/utils'
 
 export function DrawingToolToggle() {
-  const { mode, setMode, clearCanvas, canUndo } = useDrawingContext()
+  const { mode, setMode, clearCanvas, canUndo, menuOpen, setMenuOpen } = useDrawingContext()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const containerRef = useRef<HTMLButtonElement>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null)
@@ -48,37 +51,51 @@ export function DrawingToolToggle() {
 
   return (
     <div className="fixed left-4 top-4 z-40 flex items-center gap-1 pointer-events-auto">
-      <ToggleGroup
-        value={[mode]}
-        onValueChange={(value) => {
-          if (value.length === 0) return
-          const next = value[value.length - 1] as 'cursor' | 'pen'
-          if (next !== mode) setMode(next)
-        }}
-      >
-        <ToggleGroupItem value="cursor" aria-label="Cursor mode" size="icon">
-          <Pointer className="h-4 w-4" />
-        </ToggleGroupItem>
-        <ToggleGroupItem value="pen" aria-label="Drawing mode" size="icon">
-          <Pen className="h-4 w-4" />
-        </ToggleGroupItem>
-      </ToggleGroup>
+      <Tabs value={mode} onValueChange={(v) => setMode(v as 'cursor' | 'pen')}>
+        <TabsList>
+          <TabsTrigger value="cursor" aria-label="Cursor mode">
+            <Pointer className="size-4" />
+          </TabsTrigger>
+          <TabsTrigger value="pen" aria-label="Drawing mode">
+            <Pen className="size-4" />
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {mode === 'pen' && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label={menuOpen ? 'Close brush menu' : 'Open brush menu'}
+        >
+          <Plus
+            className={cn(
+              'h-4 w-4 transition-transform duration-200',
+              menuOpen && 'rotate-45'
+            )}
+          />
+        </Button>
+      )}
 
       {canUndo && (
-        <button
+        <Toggle
           ref={containerRef}
-          onClick={handleTrashClick}
+          pressed={confirmOpen}
+          onPressedChange={handleTrashClick}
           aria-label={confirmOpen ? 'Confirm clear canvas' : 'Clear canvas'}
-          className={`inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-component)] text-sm font-medium transition-all duration-200 ease-in-out outline-none cursor-pointer h-9 ${
+          size="sm"
+          className={`transition-all duration-200 ease-in-out ${
             confirmOpen
-              ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 px-3 min-w-[5rem]'
-              : 'bg-transparent hover:bg-muted hover:text-foreground w-9'
+              ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 aria-pressed:bg-destructive px-3 min-w-[5rem] gap-1.5'
+              : ''
           }`}
         >
-          <Trash2 className="h-4 w-4 shrink-0" />
-          {confirmOpen && <span>Clear</span>}
-        </button>
+          <Trash2 className="h-3.5 w-3.5 shrink-0" />
+          {confirmOpen && <span className="text-sm">Clear</span>}
+        </Toggle>
       )}
     </div>
   )
 }
+

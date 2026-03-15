@@ -38,7 +38,7 @@ function buildColorOptions(): ColorOption[] {
 const ALL_COLORS = buildColorOptions()
 
 export function DrawingControls() {
-  const { mode, brushSize, setBrushSize, brushColor, setBrushColor, undo, redo, canUndo, canRedo } =
+  const { mode, menuOpen, brushSize, setBrushSize, brushColor, setBrushColor, undo, redo, canUndo, canRedo } =
     useDrawingContext()
   const [colorPickerOpen, setColorPickerOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -89,7 +89,7 @@ export function DrawingControls() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [colorPickerOpen])
 
-  if (mode !== 'pen') return null
+  if (mode !== 'pen' || !menuOpen) return null
 
   return (
     <div className="fixed left-4 top-14 z-50 w-72 rounded-lg border border-foreground/10 bg-background/90 backdrop-blur-md p-4 shadow-lg pointer-events-auto dark:bg-background/80 dark:border-foreground/15">

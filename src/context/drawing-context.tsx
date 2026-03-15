@@ -12,6 +12,8 @@ export interface StrokePath {
 interface DrawingContextType {
   mode: 'cursor' | 'pen'
   setMode: (mode: 'cursor' | 'pen') => void
+  menuOpen: boolean
+  setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>
   brushSize: number
   setBrushSize: (size: number) => void
   brushColor: string
@@ -31,6 +33,7 @@ const DrawingContext = createContext<DrawingContextType | undefined>(undefined)
 
 export function DrawingProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'cursor' | 'pen'>('cursor')
+  const [menuOpen, setMenuOpen] = useState(true)
   const [brushSize, setBrushSize] = useState(3)
   const [brushColor, setBrushColor] = useState('#0a0a0a')
   const [history, setHistory] = useState<StrokePath[]>(() => {
@@ -88,6 +91,8 @@ export function DrawingProvider({ children }: { children: React.ReactNode }) {
       value={{
         mode,
         setMode,
+        menuOpen,
+        setMenuOpen,
         brushSize,
         setBrushSize,
         brushColor,
