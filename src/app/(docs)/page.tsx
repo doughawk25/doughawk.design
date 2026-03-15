@@ -9,7 +9,9 @@ export default function Home() {
     <DrawingProvider>
       <main className="flex min-h-full w-full flex-col items-center justify-center bg-background">
         <div className="relative w-full h-full flex items-center justify-center">
-          <HomeNav />
+          <div className="relative z-40 pointer-events-auto">
+            <HomeNav />
+          </div>
           <DrawingToolToggle />
           <DrawingControls />
         </div>

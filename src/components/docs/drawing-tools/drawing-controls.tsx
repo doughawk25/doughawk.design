@@ -1,41 +1,105 @@
 'use client'
 
 import { useDrawingContext } from '@/context/drawing-context'
-import { useDrawingCanvas } from '@/hooks/use-drawing-canvas'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
-import { Trash2, RotateCcw } from 'lucide-react'
-import { useState } from 'react'
+import { RotateCcw, RotateCw, Search } from 'lucide-react'
+import { useState, useMemo, useRef, useEffect } from 'react'
+import { tailwindColorRamps } from '@/lib/tokens'
 
-const PRESET_COLORS = [
-  { name: 'Lavender', value: '#D8B4E8' },
-  { name: 'Purple', value: '#7C5CDB' },
-  { name: 'Red', value: '#E74C3C' },
-  { name: 'Orange', value: '#F39C12' },
-  { name: 'Yellow', value: '#F1D94F' },
-  { name: 'Green', value: '#52C41A' },
-  { name: 'Blue', value: '#1890FF' },
-  { name: 'Cyan', value: '#13C2C2' },
-  { name: 'Black', value: '#000000' },
+interface ColorOption {
+  label: string
+  hex: string
+  group: string
+}
+
+const COLOR_FAMILIES = [
+  'red', 'orange', 'amber', 'yellow', 'green', 'teal',
+  'cyan', 'blue', 'indigo', 'violet', 'purple', 'pink', 'rose',
+  'zinc', 'neutral', 'slate', 'stone', 'gray',
 ]
 
+function buildColorOptions(): ColorOption[] {
+  const options: ColorOption[] = []
+  for (const family of COLOR_FAMILIES) {
+    const ramp = tailwindColorRamps[family]
+    if (!ramp) continue
+    for (const [step, color] of Object.entries(ramp)) {
+      options.push({
+        label: `${family}-${step}`,
+        hex: color.hex,
+        group: family,
+      })
+    }
+  }
+  return options
+}
+
+const ALL_COLORS = buildColorOptions()
+
 export function DrawingControls() {
-  const { mode } = useDrawingContext()
-  const { brushSize, setBrushSize, brushColor, setBrushColor, clearCanvas, undo, canUndo } =
-    useDrawingCanvas(mode)
-  const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const { mode, brushSize, setBrushSize, brushColor, setBrushColor, undo, redo, canUndo, canRedo } =
+    useDrawingContext()
+  const [colorPickerOpen, setColorPickerOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  const currentColorLabel = useMemo(() => {
+    const found = ALL_COLORS.find((c) => c.hex === brushColor)
+    return found?.label || brushColor
+  }, [brushColor])
+
+  const filteredColors = useMemo(() => {
+    if (!searchQuery) return ALL_COLORS
+    const q = searchQuery.toLowerCase()
+    return ALL_COLORS.filter(
+      (c) => c.label.toLowerCase().includes(q) || c.hex.toLowerCase().includes(q)
+    )
+  }, [searchQuery])
+
+  const filteredGroups = useMemo(() => {
+    const groups: { name: string; colors: ColorOption[] }[] = []
+    for (const family of COLOR_FAMILIES) {
+      const colors = filteredColors.filter((c) => c.group === family)
+      if (colors.length > 0) {
+        groups.push({ name: family, colors })
+      }
+    }
+    return groups
+  }, [filteredColors])
+
+  // Focus search input when picker opens
+  useEffect(() => {
+    if (colorPickerOpen && searchRef.current) {
+      searchRef.current.focus()
+    }
+  }, [colorPickerOpen])
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!colorPickerOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setColorPickerOpen(false)
+        setSearchQuery('')
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [colorPickerOpen])
 
   if (mode !== 'pen') return null
 
   return (
-    <div className="absolute left-4 top-14 z-50 w-72 rounded-lg border border-border bg-popover p-4 shadow-md pointer-events-auto">
+    <div className="fixed left-4 top-14 z-50 w-72 rounded-lg border border-foreground/10 bg-background/90 backdrop-blur-md p-4 shadow-lg pointer-events-auto dark:bg-background/80 dark:border-foreground/15">
       <div className="space-y-4">
         {/* Brush Size */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Brush Size: {brushSize}px</label>
+          <label className="text-sm font-medium text-foreground">Brush Size: {brushSize}px</label>
           <Slider
             value={[brushSize]}
-            onValueChange={(value) => setBrushSize(value[0])}
+            onValueChange={(val) => setBrushSize(Array.isArray(val) ? val[0] : val)}
             min={1}
             max={50}
             step={1}
@@ -45,29 +109,84 @@ export function DrawingControls() {
 
         {/* Color Picker */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">Color</label>
-          <div className="grid grid-cols-5 gap-2">
-            {PRESET_COLORS.map((color) => (
-              <button
-                key={color.value}
-                onClick={() => setBrushColor(color.value)}
-                className={`h-10 w-10 rounded border-2 transition-all cursor-pointer ${
-                  brushColor === color.value
-                    ? 'border-ring ring-2 ring-ring/50 shadow-lg scale-110'
-                    : 'border-border hover:border-ring hover:scale-105'
-                }`}
-                style={{ backgroundColor: color.value }}
-                title={color.name}
-                aria-label={`Select ${color.name} color`}
+          <label className="text-sm font-medium text-foreground">Color</label>
+          <div className="relative" ref={pickerRef}>
+            {/* Color trigger button */}
+            <button
+              onClick={() => {
+                setColorPickerOpen(!colorPickerOpen)
+                setSearchQuery('')
+              }}
+              className="flex w-full items-center gap-2 rounded border border-foreground/10 bg-foreground/5 px-2 py-1.5 text-sm text-foreground hover:bg-foreground/10 transition-colors cursor-pointer"
+            >
+              <span
+                className="inline-block h-5 w-5 shrink-0 rounded-sm border border-foreground/15"
+                style={{ backgroundColor: brushColor }}
               />
-            ))}
-          </div>
-          <div className="text-xs text-muted-foreground text-center">
-            {PRESET_COLORS.find(c => c.value === brushColor)?.name || 'Custom'} - {brushColor}
+              <span className="flex-1 text-left">{currentColorLabel}</span>
+              <span className="text-xs text-foreground/50">{brushColor}</span>
+            </button>
+
+            {/* Color picker dropdown */}
+            {colorPickerOpen && (
+              <div className="absolute left-0 top-full mt-1 w-full rounded-lg border border-foreground/10 bg-background/95 backdrop-blur-md shadow-lg z-10 dark:bg-background/90">
+                {/* Search input */}
+                <div className="flex items-center gap-1.5 border-b border-foreground/10 px-2 py-1.5">
+                  <Search className="h-3.5 w-3.5 text-foreground/50 shrink-0" />
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search colors..."
+                    className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-foreground/40"
+                  />
+                </div>
+
+                {/* Color list */}
+                <div className="max-h-56 overflow-y-auto p-1">
+                  {filteredGroups.length === 0 ? (
+                    <div className="py-3 text-center text-sm text-muted-foreground">
+                      No colors found
+                    </div>
+                  ) : (
+                    filteredGroups.map(({ name, colors }) => (
+                      <div key={name}>
+                        <div className="px-2 py-1 text-xs font-medium text-foreground/50 capitalize">
+                          {name}
+                        </div>
+                        {colors.map((color) => (
+                          <button
+                            key={color.label}
+                            onClick={() => {
+                              setBrushColor(color.hex)
+                              setColorPickerOpen(false)
+                              setSearchQuery('')
+                            }}
+                            className={`flex w-full items-center gap-2 rounded px-2 py-1 text-sm cursor-pointer transition-colors ${
+                              brushColor === color.hex
+                                ? 'bg-foreground/10 text-foreground'
+                                : 'text-foreground hover:bg-foreground/5'
+                            }`}
+                          >
+                            <span
+                              className="inline-block h-4 w-4 shrink-0 rounded-sm border border-foreground/15"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                            <span className="flex-1 text-left">{color.label}</span>
+                            <span className="text-xs text-foreground/50">{color.hex}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Undo / Redo */}
         <div className="flex gap-2">
           <Button
             onClick={undo}
@@ -79,40 +198,16 @@ export function DrawingControls() {
             <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
             Undo
           </Button>
-
-          {!showClearConfirm ? (
-            <Button
-              onClick={() => setShowClearConfirm(true)}
-              variant="outline"
-              size="sm"
-              className="flex-1"
-            >
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              Clear
-            </Button>
-          ) : (
-            <>
-              <Button
-                onClick={() => {
-                  clearCanvas()
-                  setShowClearConfirm(false)
-                }}
-                variant="destructive"
-                size="sm"
-                className="flex-1"
-              >
-                Confirm
-              </Button>
-              <Button
-                onClick={() => setShowClearConfirm(false)}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-            </>
-          )}
+          <Button
+            onClick={redo}
+            disabled={!canRedo}
+            variant="secondary"
+            size="sm"
+            className="flex-1"
+          >
+            <RotateCw className="mr-1.5 h-3.5 w-3.5" />
+            Redo
+          </Button>
         </div>
       </div>
     </div>
