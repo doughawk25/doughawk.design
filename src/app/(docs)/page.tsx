@@ -1,9 +1,20 @@
+'use client'
+
 import { HomeNav } from "@/components/docs/home-nav"
+import { DrawingProvider } from "@/context/drawing-context"
+import { DrawingToolToggle, DrawingCanvasOverlay, DrawingControls } from "@/components/docs/drawing-tools"
 
 export default function Home() {
   return (
-    <main className="flex min-h-full w-full flex-col items-center justify-center bg-background">
-      <HomeNav />
-    </main>
+    <DrawingProvider>
+      <main className="flex min-h-full w-full flex-col items-center justify-center bg-background">
+        <div className="relative w-full h-full flex items-center justify-center">
+          <HomeNav />
+          <DrawingToolToggle />
+          <DrawingControls />
+        </div>
+        <DrawingCanvasOverlay />
+      </main>
+    </DrawingProvider>
   )
 }
