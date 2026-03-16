@@ -3,6 +3,7 @@
 import { HomeNav } from "@/components/docs/home-nav"
 import { DrawingProvider, useDrawingContext } from "@/context/drawing-context"
 import { DrawingToolToggle, DrawingCanvasOverlay, DrawingControls } from "@/components/docs/drawing-tools"
+import { Toaster } from "@/components/ui/sonner"
 
 function HomeContent() {
   const { mode } = useDrawingContext()
@@ -15,10 +16,13 @@ function HomeContent() {
             <HomeNav />
           </div>
         )}
-        <DrawingToolToggle />
-        <DrawingControls />
+        <div className="fixed left-4 top-4 z-40 flex items-start gap-1 pointer-events-none [&>*]:pointer-events-auto">
+          <DrawingToolToggle />
+          <DrawingControls />
+        </div>
       </div>
       <DrawingCanvasOverlay />
+      <Toaster position="bottom-center" />
     </main>
   )
 }

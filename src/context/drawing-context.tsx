@@ -3,23 +3,53 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react'
 import type p5 from 'p5'
 
-export interface StrokePath {
-  points: [x: number, y: number][]
-  color: string
-  size: number
+// ---------------------------------------------------------------------------
+// Tool & action types
+// ---------------------------------------------------------------------------
+
+export type ToolType =
+  | 'brush'
+  | 'eraser'
+  | 'triangle'
+  | 'rectangle'
+  | 'ellipse'
+
+export type FillMode = 'outline' | 'filled' | 'both'
+
+export type DrawAction =
+  | { type: 'freehand'; points: [number, number][]; color: string; size: number }
+  | { type: 'eraser'; points: [number, number][]; size: number }
+  | { type: 'triangle'; points: [number, number][]; color: string; size: number; fillMode: FillMode }
+  | { type: 'rectangle'; x: number; y: number; w: number; h: number; color: string; size: number; fillMode: FillMode }
+  | { type: 'ellipse'; cx: number; cy: number; rx: number; ry: number; color: string; size: number; fillMode: FillMode }
+
+/** Convert legacy StrokePath (no `type` field) to DrawAction */
+function normalizeAction(action: DrawAction | { points: [number, number][]; color: string; size: number }): DrawAction {
+  if ('type' in action) return action as DrawAction
+  return { type: 'freehand', points: action.points, color: action.color, size: action.size }
 }
+
+// ---------------------------------------------------------------------------
+// Context shape
+// ---------------------------------------------------------------------------
 
 interface DrawingContextType {
   mode: 'cursor' | 'pen'
   setMode: (mode: 'cursor' | 'pen') => void
   menuOpen: boolean
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>
+  activeTool: ToolType
+  setActiveTool: (tool: ToolType) => void
   brushSize: number
   setBrushSize: (size: number) => void
   brushColor: string
   setBrushColor: (color: string) => void
-  history: StrokePath[]
-  setHistory: React.Dispatch<React.SetStateAction<StrokePath[]>>
+  fillMode: FillMode
+  setFillMode: (mode: FillMode) => void
+  lineWidth: number
+  setLineWidth: (width: number) => void
+  history: DrawAction[]
+  setHistory: React.Dispatch<React.SetStateAction<DrawAction[]>>
   clearCanvas: () => void
   undo: () => void
   redo: () => void
@@ -31,26 +61,33 @@ interface DrawingContextType {
 
 const DrawingContext = createContext<DrawingContextType | undefined>(undefined)
 
+// ---------------------------------------------------------------------------
+// Provider
+// ---------------------------------------------------------------------------
+
 export function DrawingProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'cursor' | 'pen'>('cursor')
   const [menuOpen, setMenuOpen] = useState(true)
+  const [activeTool, setActiveTool] = useState<ToolType>('brush')
   const [brushSize, setBrushSize] = useState(3)
   const [brushColor, setBrushColor] = useState('#0a0a0a')
-  const [history, setHistory] = useState<StrokePath[]>(() => {
+  const [fillMode, setFillMode] = useState<FillMode>('outline')
+  const [lineWidth, setLineWidth] = useState(2)
+  const [history, setHistory] = useState<DrawAction[]>(() => {
     if (typeof window === 'undefined') return []
     try {
       const saved = sessionStorage.getItem('drawingState')
       if (saved) {
         const parsed = JSON.parse(saved)
-        return parsed.history || []
+        return (parsed.history || []).map(normalizeAction)
       }
     } catch {}
     return []
   })
-  const [redoStack, setRedoStack] = useState<StrokePath[]>([])
+  const [redoStack, setRedoStack] = useState<DrawAction[]>([])
   const p5Ref = useRef<p5 | null>(null)
 
-  const saveToSession = useCallback((newHistory: StrokePath[]) => {
+  const saveToSession = useCallback((newHistory: DrawAction[]) => {
     try {
       sessionStorage.setItem('drawingState', JSON.stringify({ history: newHistory }))
     } catch {}
@@ -93,10 +130,16 @@ export function DrawingProvider({ children }: { children: React.ReactNode }) {
         setMode,
         menuOpen,
         setMenuOpen,
+        activeTool,
+        setActiveTool,
         brushSize,
         setBrushSize,
         brushColor,
         setBrushColor,
+        fillMode,
+        setFillMode,
+        lineWidth,
+        setLineWidth,
         history,
         setHistory,
         clearCanvas,
