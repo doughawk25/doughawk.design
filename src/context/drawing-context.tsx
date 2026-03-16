@@ -70,10 +70,8 @@ export function DrawingProvider({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(true)
   const [activeTool, setActiveTool] = useState<ToolType>('brush')
   const [brushSize, setBrushSize] = useState(3)
-  const [brushColor, setBrushColor] = useState('#0a0a0a')
-  const [fillMode, setFillMode] = useState<FillMode>('outline')
-  const [lineWidth, setLineWidth] = useState(2)
-  const [history, setHistory] = useState<DrawAction[]>(() => {
+  const [brushColor, setBrushColor] = useState('#3b82f6')
+  const [history, setHistory] = useState<StrokePath[]>(() => {
     if (typeof window === 'undefined') return []
     try {
       const saved = sessionStorage.getItem('drawingState')
