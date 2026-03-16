@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { useSystemAuth } from "@/components/docs/system-auth-provider"
 import { transitions } from "@/lib/motion"
@@ -37,8 +38,8 @@ export function HomeNav() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   return (
-    <nav
-      className="flex w-48 flex-col gap-1"
+    <motion.nav
+      className="relative flex w-48 flex-col gap-1 items-end text-right"
       onMouseLeave={() => setHoveredIndex(null)}
       variants={container}
       initial="initial"
@@ -46,26 +47,27 @@ export function HomeNav() {
       exit="exit"
     >
       {items.map((item, i) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={
-            item.locked && auth
-              ? (e) => {
-                  e.preventDefault()
-                  auth.openModalForRedirect(item.href)
-                }
-              : undefined
-          }
-          className={cn(
-            "flex h-9 w-full items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors",
-            (hoveredIndex === null || hoveredIndex === i) ? "text-primary" : "text-muted-foreground"
-          )}
-          onMouseEnter={() => setHoveredIndex(i)}
-        >
-          {item.label}
-        </Link>
+        <motion.div key={item.href} variants={navItem}>
+          <Link
+            href={item.href}
+            onClick={
+              item.locked && auth
+                ? (e) => {
+                    e.preventDefault()
+                    auth.openModalForRedirect(item.href)
+                  }
+                : undefined
+            }
+            className={cn(
+              "relative z-10 flex h-9 w-full items-center justify-end rounded-lg text-sm font-medium transition-colors",
+              (hoveredIndex === null || hoveredIndex === i) ? "text-primary" : "text-muted-foreground"
+            )}
+            onMouseEnter={() => setHoveredIndex(i)}
+          >
+            {item.label}
+          </Link>
+        </motion.div>
       ))}
-    </nav>
+    </motion.nav>
   )
 }

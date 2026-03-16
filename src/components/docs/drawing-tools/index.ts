@@ -1,3 +1,2 @@
 export { DrawingCanvasOverlay } from './drawing-canvas-overlay'
-export { DrawingControls } from './drawing-controls'
-export { DrawingToolToggle } from './drawing-tool-toggle'
+export { DrawingToolbar } from './drawing-toolbar'

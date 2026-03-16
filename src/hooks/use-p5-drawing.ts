@@ -2,14 +2,8 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import type p5Type from 'p5'
+import { useDrawingContext, type DrawAction, type ToolType, type FillMode, HISTORY_CAP } from '@/context/drawing-context'
 import { toast } from 'sonner'
-import { useDrawingContext, type DrawAction, type FillMode } from '@/context/drawing-context'
-
-const HISTORY_CAP = 100
-
-// ---------------------------------------------------------------------------
-// Render a single DrawAction
-// ---------------------------------------------------------------------------
 
 function renderAction(p: p5Type, action: DrawAction) {
   switch (action.type) {
@@ -27,7 +21,7 @@ function renderAction(p: p5Type, action: DrawAction) {
     }
     case 'eraser': {
       if (action.points.length < 2) return
-      p.erase()
+      p.stroke('#ffffff')
       p.strokeWeight(action.size)
       p.strokeCap(p.ROUND)
       p.strokeJoin(p.ROUND)
@@ -35,61 +29,72 @@ function renderAction(p: p5Type, action: DrawAction) {
       p.beginShape()
       for (const [x, y] of action.points) p.vertex(x, y)
       p.endShape()
-      p.noErase()
       break
     }
-    case 'triangle': {
-      applyShapeStyle(p, action.color, action.size, action.fillMode)
-      p.beginShape()
-      for (const [x, y] of action.points) p.vertex(x, y)
-      p.endShape(p.CLOSE)
+    case 'line': {
+      p.stroke(action.color)
+      p.strokeWeight(action.size)
+      p.strokeCap(p.ROUND)
+      p.line(action.start[0], action.start[1], action.end[0], action.end[1])
       break
     }
     case 'rectangle': {
-      applyShapeStyle(p, action.color, action.size, action.fillMode)
-      p.rect(action.x, action.y, action.w, action.h)
+      const x = Math.min(action.start[0], action.end[0])
+      const y = Math.min(action.start[1], action.end[1])
+      const w = Math.abs(action.end[0] - action.start[0])
+      const h = Math.abs(action.end[1] - action.start[1])
+      applyFillMode(p, action.color, action.size, action.fillMode)
+      p.rect(x, y, w, h)
       break
     }
     case 'ellipse': {
-      applyShapeStyle(p, action.color, action.size, action.fillMode)
-      p.ellipse(action.cx, action.cy, action.rx * 2, action.ry * 2)
+      const cx = (action.start[0] + action.end[0]) / 2
+      const cy = (action.start[1] + action.end[1]) / 2
+      const w = Math.abs(action.end[0] - action.start[0])
+      const h = Math.abs(action.end[1] - action.start[1])
+      applyFillMode(p, action.color, action.size, action.fillMode)
+      p.ellipse(cx, cy, w, h)
+      break
+    }
+    case 'triangle': {
+      const x1 = (action.start[0] + action.end[0]) / 2 // top center
+      const y1 = Math.min(action.start[1], action.end[1])
+      const x2 = Math.min(action.start[0], action.end[0]) // bottom left
+      const y2 = Math.max(action.start[1], action.end[1])
+      const x3 = Math.max(action.start[0], action.end[0]) // bottom right
+      const y3 = y2
+      applyFillMode(p, action.color, action.size, action.fillMode)
+      p.triangle(x1, y1, x2, y2, x3, y3)
       break
     }
   }
 }
 
-function applyShapeStyle(p: p5Type, color: string, size: number, fillMode: FillMode) {
+function applyFillMode(p: p5Type, color: string, size: number, fillMode: FillMode) {
   switch (fillMode) {
     case 'outline':
+      p.noFill()
       p.stroke(color)
       p.strokeWeight(size)
-      p.noFill()
       break
     case 'filled':
-      p.noStroke()
       p.fill(color)
-      break
-    case 'both':
-      p.stroke(color)
-      p.strokeWeight(size)
-      p.fill(color + '33')
+      p.noStroke()
       break
   }
 }
 
-// ---------------------------------------------------------------------------
-// Hook
-// ---------------------------------------------------------------------------
+const FREEHAND_TOOLS: ToolType[] = ['brush', 'eraser']
+const SHAPE_TOOLS: ToolType[] = ['line', 'rectangle', 'ellipse', 'triangle']
 
 export function useP5Drawing() {
   const containerRef = useRef<HTMLDivElement>(null)
   const {
     mode,
     activeTool,
+    fillMode,
     brushSize,
     brushColor,
-    fillMode,
-    lineWidth,
     history,
     setHistory,
     clearRedoStack,
@@ -98,25 +103,27 @@ export function useP5Drawing() {
 
   const modeRef = useRef(mode)
   const activeToolRef = useRef(activeTool)
+  const fillModeRef = useRef(fillMode)
   const brushSizeRef = useRef(brushSize)
   const brushColorRef = useRef(brushColor)
-  const fillModeRef = useRef(fillMode)
-  const lineWidthRef = useRef(lineWidth)
   const historyRef = useRef(history)
   const currentPathRef = useRef<[number, number][]>([])
-  const isDrawingRef = useRef(false)
   const dragStartRef = useRef<[number, number] | null>(null)
-  const dragEndRef = useRef<[number, number] | null>(null)
+  const isDrawingRef = useRef(false)
   const clearRedoOnNewStrokeRef = useRef(clearRedoStack)
+  const capNotifiedRef = useRef(false)
 
+  useEffect(() => { clearRedoOnNewStrokeRef.current = clearRedoStack }, [clearRedoStack])
   useEffect(() => { modeRef.current = mode }, [mode])
   useEffect(() => { activeToolRef.current = activeTool }, [activeTool])
+  useEffect(() => { fillModeRef.current = fillMode }, [fillMode])
   useEffect(() => { brushSizeRef.current = brushSize }, [brushSize])
   useEffect(() => { brushColorRef.current = brushColor }, [brushColor])
-  useEffect(() => { fillModeRef.current = fillMode }, [fillMode])
-  useEffect(() => { lineWidthRef.current = lineWidth }, [lineWidth])
-  useEffect(() => { historyRef.current = history }, [history])
-  useEffect(() => { clearRedoOnNewStrokeRef.current = clearRedoStack }, [clearRedoStack])
+  useEffect(() => {
+    historyRef.current = history
+    if (history.length < HISTORY_CAP) capNotifiedRef.current = false
+  }, [history])
+
   const saveToSession = useCallback((newHistory: DrawAction[]) => {
     try {
       sessionStorage.setItem('drawingState', JSON.stringify({ history: newHistory }))
@@ -142,60 +149,38 @@ export function useP5Drawing() {
         p.draw = () => {
           p.clear()
 
+          // Render completed history
           for (const action of historyRef.current) {
             renderAction(p, action)
           }
 
-          // Preview in-progress freehand / eraser
-          const tool = activeToolRef.current
-          if (
-            (tool === 'brush' || tool === 'eraser') &&
-            currentPathRef.current.length >= 2
-          ) {
-            if (tool === 'eraser') {
-              p.erase()
-              p.strokeWeight(brushSizeRef.current)
-              p.strokeCap(p.ROUND)
-              p.strokeJoin(p.ROUND)
-              p.noFill()
-              p.beginShape()
-              for (const [x, y] of currentPathRef.current) p.vertex(x, y)
-              p.endShape()
-              p.noErase()
-            } else {
-              p.stroke(brushColorRef.current)
-              p.strokeWeight(brushSizeRef.current)
-              p.strokeCap(p.ROUND)
-              p.strokeJoin(p.ROUND)
-              p.noFill()
-              p.beginShape()
-              for (const [x, y] of currentPathRef.current) p.vertex(x, y)
-              p.endShape()
+          // Render in-progress freehand stroke
+          if (currentPathRef.current.length >= 2) {
+            const tool = activeToolRef.current
+            if (tool === 'brush') {
+              renderAction(p, { type: 'freehand', points: currentPathRef.current, color: brushColorRef.current, size: brushSizeRef.current })
+            } else if (tool === 'eraser') {
+              renderAction(p, { type: 'eraser', points: currentPathRef.current, size: brushSizeRef.current })
             }
           }
 
-          // Preview in-progress shape
-          if (dragStartRef.current && dragEndRef.current) {
-            const [x1, y1] = dragStartRef.current
-            const [x2, y2] = dragEndRef.current
+          // Render shape preview during drag
+          if (dragStartRef.current && isDrawingRef.current) {
+            const start = dragStartRef.current
+            const end: [number, number] = [p.mouseX, p.mouseY]
+            const tool = activeToolRef.current
+            const color = brushColorRef.current
+            const size = brushSizeRef.current
+            const fm = fillModeRef.current
 
-            if (tool === 'triangle') {
-              const minX = Math.min(x1, x2)
-              const maxX = Math.max(x1, x2)
-              const minY = Math.min(y1, y2)
-              const maxY = Math.max(y1, y2)
-              applyShapeStyle(p, brushColorRef.current, lineWidthRef.current, fillModeRef.current)
-              p.beginShape()
-              p.vertex((minX + maxX) / 2, minY)
-              p.vertex(minX, maxY)
-              p.vertex(maxX, maxY)
-              p.endShape(p.CLOSE)
+            if (tool === 'line') {
+              renderAction(p, { type: 'line', start, end, color, size })
             } else if (tool === 'rectangle') {
-              applyShapeStyle(p, brushColorRef.current, lineWidthRef.current, fillModeRef.current)
-              p.rect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1))
+              renderAction(p, { type: 'rectangle', start, end, color, size, fillMode: fm })
             } else if (tool === 'ellipse') {
-              applyShapeStyle(p, brushColorRef.current, lineWidthRef.current, fillModeRef.current)
-              p.ellipse((x1 + x2) / 2, (y1 + y2) / 2, Math.abs(x2 - x1), Math.abs(y2 - y1))
+              renderAction(p, { type: 'ellipse', start, end, color, size, fillMode: fm })
+            } else if (tool === 'triangle') {
+              renderAction(p, { type: 'triangle', start, end, color, size, fillMode: fm })
             }
           }
         }
@@ -205,17 +190,14 @@ export function useP5Drawing() {
           const target = event?.target as HTMLElement
           if (target && target.tagName !== 'CANVAS') return
 
+          isDrawingRef.current = true
           const tool = activeToolRef.current
 
-          isDrawingRef.current = true
-
-          if (tool === 'brush' || tool === 'eraser') {
+          if (FREEHAND_TOOLS.includes(tool)) {
             currentPathRef.current = [[p.mouseX, p.mouseY]]
-          } else if (tool === 'triangle' || tool === 'rectangle' || tool === 'ellipse') {
+          } else if (SHAPE_TOOLS.includes(tool)) {
             dragStartRef.current = [p.mouseX, p.mouseY]
-            dragEndRef.current = [p.mouseX, p.mouseY]
           }
-
           p.redraw()
         }
 
@@ -225,13 +207,10 @@ export function useP5Drawing() {
           if (target && target.tagName !== 'CANVAS') return
 
           const tool = activeToolRef.current
-
-          if (tool === 'brush' || tool === 'eraser') {
+          if (FREEHAND_TOOLS.includes(tool)) {
             currentPathRef.current.push([p.mouseX, p.mouseY])
-          } else if (tool === 'triangle' || tool === 'rectangle' || tool === 'ellipse') {
-            dragEndRef.current = [p.mouseX, p.mouseY]
           }
-
+          // Shape tools just need a redraw to update preview
           p.redraw()
         }
 
@@ -240,98 +219,55 @@ export function useP5Drawing() {
           isDrawingRef.current = false
 
           const tool = activeToolRef.current
+          const color = brushColorRef.current
+          const size = brushSizeRef.current
+          const fm = fillModeRef.current
           let newAction: DrawAction | null = null
 
-          if (tool === 'brush') {
-            if (currentPathRef.current.length > 1) {
-              newAction = {
-                type: 'freehand',
-                points: [...currentPathRef.current],
-                color: brushColorRef.current,
-                size: brushSizeRef.current,
+          if (FREEHAND_TOOLS.includes(tool) && currentPathRef.current.length > 1) {
+            if (tool === 'brush') {
+              newAction = { type: 'freehand', points: [...currentPathRef.current], color, size }
+            } else if (tool === 'eraser') {
+              newAction = { type: 'eraser', points: [...currentPathRef.current], size }
+            }
+          } else if (SHAPE_TOOLS.includes(tool) && dragStartRef.current) {
+            const start = dragStartRef.current
+            const end: [number, number] = [p.mouseX, p.mouseY]
+            // Only create action if there was actual movement
+            if (Math.abs(end[0] - start[0]) > 2 || Math.abs(end[1] - start[1]) > 2) {
+              if (tool === 'line') {
+                newAction = { type: 'line', start, end, color, size }
+              } else if (tool === 'rectangle') {
+                newAction = { type: 'rectangle', start, end, color, size, fillMode: fm }
+              } else if (tool === 'ellipse') {
+                newAction = { type: 'ellipse', start, end, color, size, fillMode: fm }
+              } else if (tool === 'triangle') {
+                newAction = { type: 'triangle', start, end, color, size, fillMode: fm }
               }
             }
-            currentPathRef.current = []
-          } else if (tool === 'eraser') {
-            if (currentPathRef.current.length > 1) {
-              newAction = {
-                type: 'eraser',
-                points: [...currentPathRef.current],
-                size: brushSizeRef.current,
-              }
-            }
-            currentPathRef.current = []
-          } else if (tool === 'triangle' && dragStartRef.current && dragEndRef.current) {
-            const [x1, y1] = dragStartRef.current
-            const [x2, y2] = dragEndRef.current
-            const minX = Math.min(x1, x2)
-            const maxX = Math.max(x1, x2)
-            const minY = Math.min(y1, y2)
-            const maxY = Math.max(y1, y2)
-            const tw = maxX - minX
-            const th = maxY - minY
-            if (tw > 2 || th > 2) {
-              newAction = {
-                type: 'triangle',
-                points: [
-                  [(minX + maxX) / 2, minY],
-                  [minX, maxY],
-                  [maxX, maxY],
-                ],
-                color: brushColorRef.current,
-                size: lineWidthRef.current,
-                fillMode: fillModeRef.current,
-              }
-            }
-            dragStartRef.current = null
-            dragEndRef.current = null
-          } else if (tool === 'rectangle' && dragStartRef.current && dragEndRef.current) {
-            const [x1, y1] = dragStartRef.current
-            const [x2, y2] = dragEndRef.current
-            const rw = Math.abs(x2 - x1)
-            const rh = Math.abs(y2 - y1)
-            if (rw > 2 || rh > 2) {
-              newAction = {
-                type: 'rectangle',
-                x: Math.min(x1, x2), y: Math.min(y1, y2), w: rw, h: rh,
-                color: brushColorRef.current, size: lineWidthRef.current, fillMode: fillModeRef.current,
-              }
-            }
-            dragStartRef.current = null
-            dragEndRef.current = null
-          } else if (tool === 'ellipse' && dragStartRef.current && dragEndRef.current) {
-            const [x1, y1] = dragStartRef.current
-            const [x2, y2] = dragEndRef.current
-            const ew = Math.abs(x2 - x1)
-            const eh = Math.abs(y2 - y1)
-            if (ew > 2 || eh > 2) {
-              newAction = {
-                type: 'ellipse',
-                cx: (x1 + x2) / 2, cy: (y1 + y2) / 2, rx: ew / 2, ry: eh / 2,
-                color: brushColorRef.current, size: lineWidthRef.current, fillMode: fillModeRef.current,
-              }
-            }
-            dragStartRef.current = null
-            dragEndRef.current = null
           }
 
           if (newAction) {
             clearRedoOnNewStrokeRef.current()
             setHistory((prev) => {
-              const capped = prev.length >= HISTORY_CAP
-              const newHistory = [...prev.slice(-(HISTORY_CAP - 1)), newAction]
-              saveToSession(newHistory)
-              if (capped) {
-                toast.warning('Stroke limit reached', {
-                  description: `Oldest strokes are being removed (max ${HISTORY_CAP}).`,
-                  id: 'history-cap',
-                })
+              const newHistory = [...prev, newAction]
+              if (newHistory.length > HISTORY_CAP) {
+                if (!capNotifiedRef.current) {
+                  capNotifiedRef.current = true
+                  toast.info(`Drawing history limit reached (${HISTORY_CAP} strokes). Oldest strokes will be removed.`)
+                }
+                const capped = newHistory.slice(-HISTORY_CAP)
+                saveToSession(capped)
+                return capped
               }
+              saveToSession(newHistory)
               return newHistory
             })
           }
 
-          p5Ref.current?.redraw()
+          currentPathRef.current = []
+          dragStartRef.current = null
+          p.redraw()
         }
 
         p.windowResized = () => {
@@ -353,9 +289,10 @@ export function useP5Drawing() {
       }
       p5Ref.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Redraw when history changes (undo/clear)
   useEffect(() => {
     if (p5Ref.current) {
       p5Ref.current.redraw()

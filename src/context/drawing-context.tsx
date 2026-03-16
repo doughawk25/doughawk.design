@@ -3,35 +3,16 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react'
 import type p5 from 'p5'
 
-// ---------------------------------------------------------------------------
-// Tool & action types
-// ---------------------------------------------------------------------------
-
-export type ToolType =
-  | 'brush'
-  | 'eraser'
-  | 'triangle'
-  | 'rectangle'
-  | 'ellipse'
-
-export type FillMode = 'outline' | 'filled' | 'both'
+export type ToolType = 'brush' | 'eraser' | 'line' | 'rectangle' | 'ellipse' | 'triangle'
+export type FillMode = 'outline' | 'filled'
 
 export type DrawAction =
   | { type: 'freehand'; points: [number, number][]; color: string; size: number }
   | { type: 'eraser'; points: [number, number][]; size: number }
-  | { type: 'triangle'; points: [number, number][]; color: string; size: number; fillMode: FillMode }
-  | { type: 'rectangle'; x: number; y: number; w: number; h: number; color: string; size: number; fillMode: FillMode }
-  | { type: 'ellipse'; cx: number; cy: number; rx: number; ry: number; color: string; size: number; fillMode: FillMode }
-
-/** Convert legacy StrokePath (no `type` field) to DrawAction */
-function normalizeAction(action: DrawAction | { points: [number, number][]; color: string; size: number }): DrawAction {
-  if ('type' in action) return action as DrawAction
-  return { type: 'freehand', points: action.points, color: action.color, size: action.size }
-}
-
-// ---------------------------------------------------------------------------
-// Context shape
-// ---------------------------------------------------------------------------
+  | { type: 'line'; start: [number, number]; end: [number, number]; color: string; size: number }
+  | { type: 'rectangle'; start: [number, number]; end: [number, number]; color: string; size: number; fillMode: FillMode }
+  | { type: 'ellipse'; start: [number, number]; end: [number, number]; color: string; size: number; fillMode: FillMode }
+  | { type: 'triangle'; start: [number, number]; end: [number, number]; color: string; size: number; fillMode: FillMode }
 
 interface DrawingContextType {
   mode: 'cursor' | 'pen'
@@ -40,14 +21,12 @@ interface DrawingContextType {
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>
   activeTool: ToolType
   setActiveTool: (tool: ToolType) => void
+  fillMode: FillMode
+  setFillMode: (mode: FillMode) => void
   brushSize: number
   setBrushSize: (size: number) => void
   brushColor: string
   setBrushColor: (color: string) => void
-  fillMode: FillMode
-  setFillMode: (mode: FillMode) => void
-  lineWidth: number
-  setLineWidth: (width: number) => void
   history: DrawAction[]
   setHistory: React.Dispatch<React.SetStateAction<DrawAction[]>>
   clearCanvas: () => void
@@ -61,23 +40,22 @@ interface DrawingContextType {
 
 const DrawingContext = createContext<DrawingContextType | undefined>(undefined)
 
-// ---------------------------------------------------------------------------
-// Provider
-// ---------------------------------------------------------------------------
+const HISTORY_CAP = 100
 
 export function DrawingProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'cursor' | 'pen'>('cursor')
-  const [menuOpen, setMenuOpen] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [activeTool, setActiveTool] = useState<ToolType>('brush')
+  const [fillMode, setFillMode] = useState<FillMode>('outline')
   const [brushSize, setBrushSize] = useState(3)
-  const [brushColor, setBrushColor] = useState('#3b82f6')
-  const [history, setHistory] = useState<StrokePath[]>(() => {
+  const [brushColor, setBrushColor] = useState('#0a0a0a')
+  const [history, setHistory] = useState<DrawAction[]>(() => {
     if (typeof window === 'undefined') return []
     try {
       const saved = sessionStorage.getItem('drawingState')
       if (saved) {
         const parsed = JSON.parse(saved)
-        return (parsed.history || []).map(normalizeAction)
+        return parsed.history || []
       }
     } catch {}
     return []
@@ -130,14 +108,12 @@ export function DrawingProvider({ children }: { children: React.ReactNode }) {
         setMenuOpen,
         activeTool,
         setActiveTool,
+        fillMode,
+        setFillMode,
         brushSize,
         setBrushSize,
         brushColor,
         setBrushColor,
-        fillMode,
-        setFillMode,
-        lineWidth,
-        setLineWidth,
         history,
         setHistory,
         clearCanvas,
@@ -161,3 +137,5 @@ export function useDrawingContext() {
   }
   return context
 }
+
+export { HISTORY_CAP }

@@ -3,49 +3,81 @@
 import { useDrawingContext, type ToolType, type FillMode } from '@/context/drawing-context'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
-import { RotateCcw, RotateCw } from 'lucide-react'
-import { useState, useMemo, useRef, useEffect } from 'react'
-import { tailwindColorRamps } from '@/lib/tokens'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  RotateCcw,
+  RotateCw,
+  Pen,
+  Eraser,
+  Triangle,
+  Square,
+  Circle,
+} from 'lucide-react'
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
 
-interface ColorOption {
-  label: string
-  hex: string
-}
+// ---------------------------------------------------------------------------
+// MS Paint–style color palette (28 colors)
+// ---------------------------------------------------------------------------
 
-const COLOR_FAMILIES = [
-  'red', 'orange', 'amber', 'yellow', 'green', 'teal',
-  'cyan', 'blue', 'indigo', 'violet', 'purple', 'pink', 'rose',
-  'zinc', 'neutral', 'slate', 'stone', 'gray',
+const PALETTE_COLORS: { hex: string; label: string }[] = [
+  // Row 1 — darks / saturated
+  { hex: '#0a0a0a', label: 'Black' },
+  { hex: '#737373', label: 'Dark gray' },
+  { hex: '#7f1d1d', label: 'Dark red' },
+  { hex: '#854d0e', label: 'Dark yellow' },
+  { hex: '#166534', label: 'Dark green' },
+  { hex: '#155e75', label: 'Dark cyan' },
+  { hex: '#1e3a5f', label: 'Dark blue' },
+  { hex: '#581c87', label: 'Dark purple' },
+  { hex: '#78350f', label: 'Brown' },
+  { hex: '#4d7c0f', label: 'Olive' },
+  { hex: '#0f766e', label: 'Teal' },
+  { hex: '#1e40af', label: 'Navy' },
+  { hex: '#9f1239', label: 'Maroon' },
+  { hex: '#86198f', label: 'Dark magenta' },
+  // Row 2 — lights / pastels
+  { hex: '#ffffff', label: 'White' },
+  { hex: '#d4d4d4', label: 'Light gray' },
+  { hex: '#ef4444', label: 'Red' },
+  { hex: '#eab308', label: 'Yellow' },
+  { hex: '#22c55e', label: 'Green' },
+  { hex: '#06b6d4', label: 'Cyan' },
+  { hex: '#3b82f6', label: 'Blue' },
+  { hex: '#a855f7', label: 'Purple' },
+  { hex: '#f43f5e', label: 'Rose' },
+  { hex: '#f97316', label: 'Orange' },
+  { hex: '#84cc16', label: 'Lime' },
+  { hex: '#38bdf8', label: 'Sky' },
+  { hex: '#ec4899', label: 'Pink' },
+  { hex: '#d946ef', label: 'Magenta' },
 ]
 
-const COLORS_500: ColorOption[] = COLOR_FAMILIES.flatMap((family) => {
-  const ramp = tailwindColorRamps[family]
-  const step = ramp?.['500']
-  return step ? [{ label: family, hex: step.hex }] : []
-})
+// ---------------------------------------------------------------------------
+// Tool definitions
+// ---------------------------------------------------------------------------
+
+const TOOLS: { id: ToolType; icon: typeof Pen; label: string }[] = [
+  { id: 'brush', icon: Pen, label: 'Brush' },
+  { id: 'eraser', icon: Eraser, label: 'Eraser' },
+  { id: 'triangle', icon: Triangle, label: 'Triangle' },
+  { id: 'rectangle', icon: Square, label: 'Rectangle' },
+  { id: 'ellipse', icon: Circle, label: 'Ellipse' },
+]
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export function DrawingControls() {
-  const { mode, menuOpen, brushSize, setBrushSize, brushColor, setBrushColor, undo, redo, canUndo, canRedo } =
-    useDrawingContext()
-  const [colorPickerOpen, setColorPickerOpen] = useState(false)
-  const pickerRef = useRef<HTMLDivElement>(null)
+  const {
+    mode, menuOpen, activeTool, setActiveTool,
+    brushSize, setBrushSize, brushColor, setBrushColor,
+    fillMode, setFillMode,
+    undo, redo, canUndo, canRedo,
+  } = useDrawingContext()
 
-  const currentColorLabel = useMemo(() => {
-    const found = COLORS_500.find((c) => c.hex === brushColor)
-    return found ? found.label : brushColor
-  }, [brushColor])
-
-  // Close picker on outside click
-  useEffect(() => {
-    if (!colorPickerOpen) return
-    const handleClick = (e: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setColorPickerOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [colorPickerOpen])
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   if (mode !== 'pen' || !menuOpen) return null
 
@@ -60,43 +92,31 @@ export function DrawingControls() {
           {/* Tool buttons */}
           {TOOLS.map(({ id, icon: Icon, label }) => (
             <button
-              onClick={() => setColorPickerOpen(!colorPickerOpen)}
-              className="flex w-full items-center gap-2 rounded border border-foreground/10 bg-foreground/5 px-2 py-1.5 text-sm text-foreground hover:bg-foreground/10 transition-colors cursor-pointer"
+              key={id}
+              onClick={() => setActiveTool(id)}
+              title={label}
+              className={cn(
+                'flex items-center justify-center h-7 w-7 rounded-[var(--radius-component-sm)] text-foreground/70 transition-colors cursor-pointer',
+                activeTool === id
+                  ? 'bg-foreground/10 text-foreground'
+                  : 'hover:bg-foreground/5'
+              )}
+              aria-label={label}
+              aria-pressed={activeTool === id}
             >
-              <span
-                className="inline-block h-5 w-5 shrink-0 rounded-full border border-foreground/15"
-                style={{ backgroundColor: brushColor }}
-              />
-              <span className="flex-1 text-left capitalize">{currentColorLabel}</span>
+              <Icon className="size-4" />
             </button>
           ))}
 
-            {/* Color picker dropdown */}
-            {colorPickerOpen && (
-              <div className="absolute left-0 top-full mt-1 w-full rounded-lg border border-foreground/10 bg-background/95 backdrop-blur-md shadow-lg z-10 dark:bg-background/90">
-                <div className="max-h-56 overflow-y-auto p-1">
-                  {COLORS_500.map((color) => (
-                    <button
-                      key={color.label}
-                      onClick={() => {
-                        setBrushColor(color.hex)
-                        setColorPickerOpen(false)
-                      }}
-                      className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm cursor-pointer transition-colors ${
-                        brushColor === color.hex
-                          ? 'bg-foreground/10 text-foreground'
-                          : 'text-foreground hover:bg-foreground/5'
-                      }`}
-                    >
-                      <span
-                        className="inline-block h-4 w-4 shrink-0 rounded-full border border-foreground/15"
-                        style={{ backgroundColor: color.hex }}
-                      />
-                      <span className="flex-1 text-left capitalize">{color.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+          {/* Divider */}
+          <div className="h-5 w-px bg-foreground/10 mx-0.5" />
+
+          {/* Color swatch toggle */}
+          <button
+            onClick={() => setPaletteOpen(!paletteOpen)}
+            className={cn(
+              'h-7 w-7 rounded-[var(--radius-component-sm)] border-2 transition-all cursor-pointer shrink-0',
+              paletteOpen ? 'border-foreground/40 ring-1 ring-foreground/20' : 'border-foreground/20 hover:border-foreground/40'
             )}
             style={{ backgroundColor: brushColor }}
             aria-label="Toggle color palette"
