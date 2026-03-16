@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { useSystemAuth } from "@/components/docs/system-auth-provider"
+import { transitions } from "@/lib/motion"
 
 const items = [
   { label: "About", href: "/about", locked: true },
@@ -15,67 +16,58 @@ const items = [
   { label: "System", href: "/system", locked: false },
 ] as const
 
+const container = {
+  initial: {},
+  animate: {
+    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+  },
+  exit: {
+    transition: { staggerChildren: 0.04, staggerDirection: -1 },
+  },
+}
+
+const navItem = {
+  initial: { x: 12, opacity: 0 },
+  animate: { x: 0, opacity: 1, transition: transitions.normal },
+  exit: { x: 12, opacity: 0, transition: transitions.fast },
+}
+
 export function HomeNav() {
   const pathname = usePathname()
   const auth = useSystemAuth()
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [lastHoveredIndex, setLastHoveredIndex] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (hoveredIndex !== null) setLastHoveredIndex(hoveredIndex)
-  }, [hoveredIndex])
-
-  const isSystemPage =
-    pathname === "/system" ||
-    pathname.startsWith("/foundation") ||
-    pathname.startsWith("/tokens") ||
-    pathname.startsWith("/components") ||
-    pathname === "/motion"
-
-  const activeIndex = items.findIndex((item) => {
-    if (item.href === "/system") return isSystemPage
-    return pathname === item.href || pathname.startsWith(item.href + "/")
-  })
 
   return (
-    <nav
-      className="relative flex w-48 flex-col gap-1"
+    <motion.nav
+      className="relative flex w-48 flex-col gap-1 items-end text-right"
       onMouseLeave={() => setHoveredIndex(null)}
+      variants={container}
+      initial="initial"
+      animate="animate"
+      exit="exit"
     >
       {items.map((item, i) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={
-            item.locked && auth
-              ? (e) => {
-                  e.preventDefault()
-                  auth.openModalForRedirect(item.href)
-                }
-              : undefined
-          }
-          className={cn(
-            "relative z-10 flex h-9 w-full items-center justify-center rounded-lg px-4 text-sm font-medium transition-colors",
-            (hoveredIndex === null || hoveredIndex === i) ? "text-primary" : "text-muted-foreground"
-          )}
-          onMouseEnter={() => setHoveredIndex(i)}
-        >
-          {item.label}
-        </Link>
+        <motion.div key={item.href} variants={navItem}>
+          <Link
+            href={item.href}
+            onClick={
+              item.locked && auth
+                ? (e) => {
+                    e.preventDefault()
+                    auth.openModalForRedirect(item.href)
+                  }
+                : undefined
+            }
+            className={cn(
+              "relative z-10 flex h-9 w-full items-center justify-end rounded-lg text-sm font-medium transition-colors",
+              (hoveredIndex === null || hoveredIndex === i) ? "text-primary" : "text-muted-foreground"
+            )}
+            onMouseEnter={() => setHoveredIndex(i)}
+          >
+            {item.label}
+          </Link>
+        </motion.div>
       ))}
-      <motion.div
-        className="pointer-events-none absolute inset-x-8 z-0 h-9 rounded-lg bg-muted"
-        initial={false}
-        animate={{
-          opacity: hoveredIndex !== null ? 1 : 0,
-          top: (hoveredIndex ?? lastHoveredIndex ?? activeIndex) * 40,
-        }}
-        transition={{
-          opacity: { duration: 0.2 },
-          top: { type: "spring", stiffness: 400, damping: 30 },
-        }}
-      />
-    </nav>
+    </motion.nav>
   )
 }
-

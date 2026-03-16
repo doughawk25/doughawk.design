@@ -60,54 +60,11 @@ export default function DocsLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const timeZones = [
-    { label: "ET", tz: "America/New_York" },
-    { label: "CT", tz: "America/Chicago" },
-    { label: "MT", tz: "America/Denver" },
-    { label: "PT", tz: "America/Los_Angeles" },
-    { label: "AKT", tz: "America/Anchorage" },
-    { label: "HT", tz: "Pacific/Honolulu" },
-  ]
-  const tzToLabel: Record<string, string> = {
-    "America/New_York": "ET",
-    "America/Toronto": "ET",
-    "America/Montreal": "ET",
-    "America/Detroit": "ET",
-    "America/Indiana/Indianapolis": "ET",
-    "America/Chicago": "CT",
-    "America/Mexico_City": "CT",
-    "America/Denver": "MT",
-    "America/Phoenix": "MT",
-    "America/Boise": "MT",
-    "America/Los_Angeles": "PT",
-    "America/Vancouver": "PT",
-    "America/San_Francisco": "PT",
-    "America/Seattle": "PT",
-    "America/Anchorage": "AKT",
-    "America/Juneau": "AKT",
-    "Pacific/Honolulu": "HT",
-    "Pacific/Johnston": "HT",
-  }
-  const [times, setTimes] = useState<{ time: string; label: string }[]>([])
-  const [primaryTzLabel, setPrimaryTzLabel] = useState<string | null>(null)
-
-  useEffect(() => {
-    const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone
-    setPrimaryTzLabel(tzToLabel[userTz] ?? null)
-  }, [])
+  const [localTime, setLocalTime] = useState("")
 
   useEffect(() => {
     const update = () => {
-      const now = new Date()
-      setTimes(
-        timeZones.map(({ label, tz }) => ({
-          time: now.toLocaleTimeString(undefined, {
-            timeStyle: "short",
-            timeZone: tz,
-          }),
-          label,
-        }))
-      )
+      setLocalTime(new Date().toLocaleTimeString(undefined, { timeStyle: "short" }))
     }
     update()
     const id = setInterval(update, 1000)
@@ -184,23 +141,21 @@ export default function DocsLayout({
             <div
               className={
                 pathname === "/"
-                  ? "flex min-h-full w-full max-w-none flex-col items-center justify-center px-6 py-8"
+                  ? "flex min-h-full w-full max-w-none flex-col items-center justify-center px-4 py-8"
                   : "mx-auto max-w-4xl px-6 py-8"
               }
             >
               {children}
             </div>
           </div>
-          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-4 px-6 py-4 text-xs text-muted-foreground">
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              {times.map(({ time, label }, i) => (
-                <span key={label}>
-                  {i > 0 && <span className="opacity-50"> · </span>}
-                  <span className={primaryTzLabel === label ? "text-primary font-medium" : ""}>
-                    {time} {label}
-                  </span>
-                </span>
-              ))}
+          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-4 px-6 py-4 font-mono text-xs text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <span className="text-primary font-medium">{localTime}</span>
+              <span className="opacity-50">·</span>
+              <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Instagram</a>
+              <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">LinkedIn</a>
+              <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">GitHub</a>
+              <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">YouTube</a>
             </div>
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1">
