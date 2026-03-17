@@ -44,11 +44,11 @@ const HISTORY_CAP = 100
 
 export function DrawingProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'cursor' | 'pen'>('cursor')
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(true)
   const [activeTool, setActiveTool] = useState<ToolType>('brush')
   const [fillMode, setFillMode] = useState<FillMode>('outline')
   const [brushSize, setBrushSize] = useState(3)
-  const [brushColor, setBrushColor] = useState('#0a0a0a')
+  const [brushColor, setBrushColor] = useState('--foreground')
   const [history, setHistory] = useState<DrawAction[]>(() => {
     if (typeof window === 'undefined') return []
     try {
@@ -73,6 +73,10 @@ export function DrawingProvider({ children }: { children: React.ReactNode }) {
     setHistory([])
     setRedoStack([])
     saveToSession([])
+    // Immediately clear the canvas pixels so stale drawings don't persist
+    if (p5Ref.current) {
+      p5Ref.current.clear()
+    }
   }, [saveToSession])
 
   const undo = useCallback(() => {

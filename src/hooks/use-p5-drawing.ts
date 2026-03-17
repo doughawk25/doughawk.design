@@ -5,11 +5,45 @@ import type p5Type from 'p5'
 import { useDrawingContext, type DrawAction, type ToolType, type FillMode, HISTORY_CAP } from '@/context/drawing-context'
 import { toast } from 'sonner'
 
+// ---------------------------------------------------------------------------
+// Token → RGB resolver (p5.js needs rgb/hex, not CSS custom properties/OKLCH)
+// ---------------------------------------------------------------------------
+let tokenCache = new Map<string, string>()
+
+function invalidateTokenCache() {
+  tokenCache = new Map()
+}
+
+/**
+ * Resolve a CSS custom property name (e.g. '--foreground') to an rgb() string
+ * that p5.js can consume. Falls through hex values unchanged for backward compat.
+ */
+function resolveTokenToRgb(token: string): string {
+  if (token.startsWith('#')) return token // legacy hex passthrough
+
+  const cached = tokenCache.get(token)
+  if (cached) return cached
+
+  const raw = getComputedStyle(document.documentElement).getPropertyValue(token).trim()
+  if (!raw) return '#000000'
+
+  // Use a probe element to force the browser to convert OKLCH → rgb()
+  const probe = document.createElement('div')
+  probe.style.color = raw
+  probe.style.display = 'none'
+  document.body.appendChild(probe)
+  const rgb = getComputedStyle(probe).color
+  document.body.removeChild(probe)
+
+  tokenCache.set(token, rgb)
+  return rgb
+}
+
 function renderAction(p: p5Type, action: DrawAction) {
   switch (action.type) {
     case 'freehand': {
       if (action.points.length < 2) return
-      p.stroke(action.color)
+      p.stroke(resolveTokenToRgb(action.color))
       p.strokeWeight(action.size)
       p.strokeCap(p.ROUND)
       p.strokeJoin(p.ROUND)
@@ -21,7 +55,7 @@ function renderAction(p: p5Type, action: DrawAction) {
     }
     case 'eraser': {
       if (action.points.length < 2) return
-      p.stroke('#ffffff')
+      p.stroke(resolveTokenToRgb('--background'))
       p.strokeWeight(action.size)
       p.strokeCap(p.ROUND)
       p.strokeJoin(p.ROUND)
@@ -32,7 +66,7 @@ function renderAction(p: p5Type, action: DrawAction) {
       break
     }
     case 'line': {
-      p.stroke(action.color)
+      p.stroke(resolveTokenToRgb(action.color))
       p.strokeWeight(action.size)
       p.strokeCap(p.ROUND)
       p.line(action.start[0], action.start[1], action.end[0], action.end[1])
@@ -71,14 +105,15 @@ function renderAction(p: p5Type, action: DrawAction) {
 }
 
 function applyFillMode(p: p5Type, color: string, size: number, fillMode: FillMode) {
+  const resolved = resolveTokenToRgb(color)
   switch (fillMode) {
     case 'outline':
       p.noFill()
-      p.stroke(color)
+      p.stroke(resolved)
       p.strokeWeight(size)
       break
     case 'filled':
-      p.fill(color)
+      p.fill(resolved)
       p.noStroke()
       break
   }
@@ -134,8 +169,10 @@ export function useP5Drawing() {
     if (!containerRef.current) return
 
     let p5Instance: p5Type | null = null
+    let cancelled = false
 
     import('p5').then((p5Module) => {
+      if (cancelled) return
       const p5 = p5Module.default
 
       const sketch = (p: p5Type) => {
@@ -283,6 +320,7 @@ export function useP5Drawing() {
     })
 
     return () => {
+      cancelled = true
       if (p5Instance) {
         p5Instance.remove()
         p5Instance = null
@@ -298,6 +336,22 @@ export function useP5Drawing() {
       p5Ref.current.redraw()
     }
   }, [history, p5Ref])
+
+  // Redraw when theme changes (light/dark toggle mutates .dark class on <html>)
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.attributeName === 'class') {
+          invalidateTokenCache()
+          if (p5Ref.current) {
+            p5Ref.current.redraw()
+          }
+        }
+      }
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [p5Ref])
 
   return { containerRef }
 }

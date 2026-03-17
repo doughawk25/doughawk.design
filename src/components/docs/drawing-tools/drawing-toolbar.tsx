@@ -6,7 +6,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 import {
-  Pointer,
+  Menu,
   Pen,
   Paintbrush,
   Eraser,
@@ -33,45 +33,68 @@ const slideFromLeft = {
   exit: { x: -8, opacity: 0, transition: transitions.fast },
 }
 
-// Menu drops down from above (it appears below the toolbar)
-const slideFromTop = {
-  initial: { y: -8, opacity: 0 },
-  animate: { y: 0, opacity: 1, transition: transitions.normal },
-  exit: { y: -8, opacity: 0, transition: transitions.fast },
+// Color palette — toolbar expands smoothly, columns stagger in (top + bottom paired)
+const PALETTE_COLUMNS = 14
+const paletteReveal = {
+  initial: { width: 0, opacity: 0 },
+  animate: {
+    width: 'auto',
+    opacity: 1,
+    transition: {
+      width: transitions.normal,
+      opacity: { duration: 0.15, delay: 0.03 },
+      staggerChildren: 0.02,
+      delayChildren: 0.04,
+    },
+  },
+  exit: {
+    width: 0,
+    opacity: 0,
+    transition: {
+      width: { ...transitions.fast, delay: 0.02 },
+      opacity: { duration: 0.1 },
+    },
+  },
+}
+const paletteColumn = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.1 } },
+  exit: { opacity: 0, transition: { duration: 0.06 } },
 }
 
-// MS Paint 28-color palette mapped to nearest Tailwind token hex values
-const MS_PAINT_COLORS: { hex: string; label: string }[] = [
-  // Row 1 (top — darker/primary)
-  { hex: '#0a0a0a', label: 'Black' },
-  { hex: '#737373', label: 'Dark Gray' },
-  { hex: '#7f1d1d', label: 'Dark Red' },
-  { hex: '#713f12', label: 'Olive' },
-  { hex: '#14532d', label: 'Dark Green' },
-  { hex: '#134e4a', label: 'Dark Teal' },
-  { hex: '#172554', label: 'Dark Blue' },
-  { hex: '#4c1d95', label: 'Dark Purple' },
-  { hex: '#78350f', label: 'Dark Brown' },
-  { hex: '#042f2e', label: 'Dark Cyan' },
-  { hex: '#1e3a8a', label: 'Navy' },
-  { hex: '#475569', label: 'Dark Slate' },
-  { hex: '#422006', label: 'Brown' },
-  { hex: '#404040', label: 'Gray' },
-  // Row 2 (bottom — lighter)
-  { hex: '#fafafa', label: 'White' },
-  { hex: '#d4d4d4', label: 'Light Gray' },
-  { hex: '#ef4444', label: 'Red' },
-  { hex: '#eab308', label: 'Yellow' },
-  { hex: '#22c55e', label: 'Green' },
-  { hex: '#06b6d4', label: 'Cyan' },
-  { hex: '#3b82f6', label: 'Blue' },
-  { hex: '#ec4899', label: 'Pink' },
-  { hex: '#fbbf24', label: 'Light Yellow' },
-  { hex: '#22d3ee', label: 'Light Cyan' },
-  { hex: '#60a5fa', label: 'Light Blue' },
-  { hex: '#a78bfa', label: 'Light Purple' },
-  { hex: '#86efac', label: 'Light Green' },
-  { hex: '#e5e5e5', label: 'Silver' },
+// Token-based color palette — adapts to light/dark theme automatically
+// Top row: vivid (-fg) variants, bottom row: lighter (-border) variants, columns aligned
+const TOKEN_PALETTE: { token: string; label: string }[] = [
+  // Row 1 — vivid / darker
+  { token: '--foreground',       label: 'Foreground' },
+  { token: '--tint-red-fg',      label: 'Red' },
+  { token: '--tint-orange-fg',   label: 'Orange' },
+  { token: '--tint-amber-fg',    label: 'Amber' },
+  { token: '--tint-yellow-fg',   label: 'Yellow' },
+  { token: '--tint-green-fg',    label: 'Green' },
+  { token: '--tint-teal-fg',     label: 'Teal' },
+  { token: '--tint-cyan-fg',     label: 'Cyan' },
+  { token: '--tint-blue-fg',     label: 'Blue' },
+  { token: '--tint-indigo-fg',   label: 'Indigo' },
+  { token: '--tint-violet-fg',   label: 'Violet' },
+  { token: '--tint-purple-fg',   label: 'Purple' },
+  { token: '--tint-pink-fg',     label: 'Pink' },
+  { token: '--tint-rose-fg',     label: 'Rose' },
+  // Row 2 — lighter tint (matched column-for-column)
+  { token: '--background',          label: 'Background' },
+  { token: '--tint-red-border',     label: 'Light Red' },
+  { token: '--tint-orange-border',  label: 'Light Orange' },
+  { token: '--tint-amber-border',   label: 'Light Amber' },
+  { token: '--tint-yellow-border',  label: 'Light Yellow' },
+  { token: '--tint-green-border',   label: 'Light Green' },
+  { token: '--tint-teal-border',    label: 'Light Teal' },
+  { token: '--tint-cyan-border',    label: 'Light Cyan' },
+  { token: '--tint-blue-border',    label: 'Light Blue' },
+  { token: '--tint-indigo-border',  label: 'Light Indigo' },
+  { token: '--tint-violet-border',  label: 'Light Violet' },
+  { token: '--tint-purple-border',  label: 'Light Purple' },
+  { token: '--tint-pink-border',    label: 'Light Pink' },
+  { token: '--tint-rose-border',    label: 'Light Rose' },
 ]
 
 const TOOLS: { value: ToolType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -89,7 +112,7 @@ const TOOLS_WITH_SIZE: ToolType[] = ['brush', 'eraser', 'line', 'rectangle', 'el
 const MAX_BRUSH_SIZE = 50
 
 function Separator() {
-  return <div className="h-5 w-px bg-foreground/10 mx-1" />
+  return <div className="self-stretch w-px bg-foreground/10 mx-1" />
 }
 
 export function DrawingToolbar() {
@@ -168,101 +191,89 @@ export function DrawingToolbar() {
 
   return (
     <TooltipProvider>
-      <div className="fixed left-4 top-4 z-40 flex items-center gap-1 pointer-events-auto">
+      <div className="fixed left-4 top-0 z-40 flex h-14 items-center gap-1 pointer-events-auto">
         {/* Mode Toggle — always separate */}
         <Tabs value={mode} onValueChange={(v) => setMode(v as 'cursor' | 'pen')}>
           <TabsList>
             <TabsTrigger value="cursor" aria-label="Cursor mode">
-              <Pointer className="size-4" />
+              <Menu className="size-4" />
             </TabsTrigger>
             <TabsTrigger value="pen" aria-label="Drawing mode">
-              <Paintbrush className="size-4" />
+              <Pen className="size-4" />
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <AnimatePresence>
-          {/* +/X toggle to open/close menu */}
-          {mode === 'pen' && (
-            <motion.div key="menu-toggle" {...slideFromLeft}>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMenuOpen((v) => !v)}
-                aria-label={menuOpen ? 'Close tool menu' : 'Open tool menu'}
-              >
-                <Plus
-                  className={cn(
-                    'h-4 w-4 transition-transform duration-200',
-                    menuOpen && 'rotate-45'
-                  )}
-                />
-              </Button>
-            </motion.div>
-          )}
-
-          {/* Trash button outside menu */}
-          {canUndo && (
-            <motion.div key="trash" layout transition={transitions.fast} {...slideFromLeft}>
-              <Button
-                ref={trashRef}
-                onClick={handleTrashClick}
-                variant="destructive"
-                size={confirmOpen ? 'default' : 'icon'}
-                aria-label={confirmOpen ? 'Confirm clear canvas' : 'Clear canvas'}
-                className={cn(
-                  'transition-all duration-200 ease-in-out',
-                  confirmOpen && 'min-w-[5rem] gap-1.5'
-                )}
-              >
-                <Trash2 className="h-3.5 w-3.5 shrink-0" />
-                {confirmOpen && <span className="text-sm">Clear</span>}
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Tool Menu — separate bar, opens below toggle */}
-      <AnimatePresence>
-        {mode === 'pen' && menuOpen && (
-          <motion.div
-            key="tool-menu"
-            {...slideFromTop}
-            className="fixed left-4 top-14 z-40 flex items-center gap-1.5 pointer-events-auto rounded-lg border border-foreground/10 bg-background/90 backdrop-blur-md px-2 py-1.5 shadow-lg dark:bg-background/80 dark:border-foreground/15"
+        {/* +/X toggle — always present in pen mode, outside AnimatePresence to avoid layout shift */}
+        {mode === 'pen' && (
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? 'Close tool menu' : 'Open tool menu'}
           >
+            <Plus
+              className={cn(
+                'h-4 w-4 transition-transform duration-200',
+                menuOpen && 'rotate-45'
+              )}
+            />
+          </Button>
+        )}
+
+        <AnimatePresence>
+          {/* Tool Menu — slides right of +/X button */}
+          {mode === 'pen' && menuOpen && (
+            <motion.div
+              key="tool-menu"
+              layout
+              {...slideFromLeft}
+              className="flex items-center gap-1 rounded-full border border-foreground/10 bg-background/90 backdrop-blur-md px-[6px] py-[2px] shadow-xs dark:bg-background/80 dark:border-foreground/15"
+            >
             {/* Color swatch — far left */}
             <div className="flex items-center gap-1.5">
               {/* Current color indicator + toggle */}
               <button
                 onClick={() => setColorPickerOpen((v) => !v)}
-                className="h-6 w-6 rounded-sm border border-foreground/15 cursor-pointer transition-transform hover:scale-110 shrink-0"
-                style={{ backgroundColor: brushColor }}
+                className="h-6 w-6 rounded-full border border-foreground/15 cursor-pointer transition-transform hover:scale-110 shrink-0"
+                style={{ backgroundColor: brushColor.startsWith('--') ? `var(${brushColor})` : brushColor }}
                 aria-label="Toggle color palette"
               />
 
-              {/* Expanded swatch grid */}
-              {colorPickerOpen && (
-                <div
-                  className="grid gap-px"
-                  style={{ gridTemplateColumns: 'repeat(14, 1fr)' }}
-                >
-                  {MS_PAINT_COLORS.map((color) => (
-                    <button
-                      key={color.hex + color.label}
-                      onClick={() => {
-                        setBrushColor(color.hex)
-                      }}
-                      className={cn(
-                        'h-3.5 w-3.5 rounded-[2px] border border-foreground/15 transition-transform hover:scale-125 cursor-pointer',
-                        brushColor === color.hex && 'ring-1 ring-foreground ring-offset-1 ring-offset-background scale-110'
-                      )}
-                      style={{ backgroundColor: color.hex }}
-                      aria-label={color.label}
-                    />
-                  ))}
-                </div>
-              )}
+              {/* Expanded swatch grid — columns pair top (vivid) + bottom (light) */}
+              <AnimatePresence>
+                {colorPickerOpen && (
+                  <motion.div
+                    key="swatch-grid"
+                    variants={paletteReveal}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="flex gap-px"
+                  >
+                    {Array.from({ length: PALETTE_COLUMNS }, (_, colIdx) => (
+                      <motion.div
+                        key={colIdx}
+                        variants={paletteColumn}
+                        className="flex flex-col gap-px"
+                      >
+                        {[TOKEN_PALETTE[colIdx], TOKEN_PALETTE[colIdx + PALETTE_COLUMNS]].map((entry) => (
+                          <button
+                            key={entry.token}
+                            onClick={() => setBrushColor(entry.token)}
+                            className={cn(
+                              'h-3.5 w-3.5 rounded-[2px] border border-foreground/15 transition-transform hover:scale-125 cursor-pointer',
+                              brushColor === entry.token && 'ring-1 ring-foreground ring-offset-1 ring-offset-background scale-110'
+                            )}
+                            style={{ backgroundColor: `var(${entry.token})` }}
+                            aria-label={entry.label}
+                          />
+                        ))}
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <Separator />
@@ -272,9 +283,10 @@ export function DrawingToolbar() {
               value={[activeTool]}
               onValueChange={handleToolChange}
               size="sm"
+              className="!rounded-none"
             >
               {TOOLS.map(({ value, label, icon: Icon }) => (
-                <ToggleGroupItem key={value} value={value} aria-label={label}>
+                <ToggleGroupItem key={value} value={value} aria-label={label} className="!rounded-none">
                   <Icon className="size-3.5" />
                 </ToggleGroupItem>
               ))}
@@ -370,8 +382,29 @@ export function DrawingToolbar() {
               </Tooltip>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+
+          {/* Trash button outside menu */}
+          {canUndo && (
+            <motion.div key="trash" layout transition={transitions.fast} {...slideFromLeft}>
+              <Button
+                ref={trashRef}
+                onClick={handleTrashClick}
+                variant="destructive"
+                size={confirmOpen ? 'default' : 'icon'}
+                aria-label={confirmOpen ? 'Confirm clear canvas' : 'Clear canvas'}
+                className={cn(
+                  'transition-all duration-200 ease-in-out',
+                  confirmOpen && 'min-w-[5rem] gap-1.5'
+                )}
+              >
+                <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                {confirmOpen && <span className="text-sm">Clear</span>}
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </TooltipProvider>
   )
 }
