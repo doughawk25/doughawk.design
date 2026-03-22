@@ -8,7 +8,6 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import {
   Menu,
   Pen,
-  Paintbrush,
   Eraser,
   Minus,
   Square,
@@ -122,13 +121,16 @@ const TOOLS: { value: ToolType; label: string; icon: React.ComponentType<{ class
   { value: 'triangle', label: 'Triangle', icon: Triangle },
 ]
 
+// Mobile only shows brush + eraser
+const MOBILE_TOOLS = TOOLS.slice(0, 2)
+
 const SHAPE_TOOLS: ToolType[] = ['rectangle', 'ellipse', 'triangle']
 const TOOLS_WITH_SIZE: ToolType[] = ['brush', 'eraser', 'line', 'rectangle', 'ellipse', 'triangle']
 
 const MAX_BRUSH_SIZE = 50
 
-function Separator() {
-  return <div className="self-stretch w-px bg-foreground/10 mx-1" />
+function Separator({ className }: { className?: string }) {
+  return <div className={cn("self-stretch w-px bg-foreground/10 mx-1", className)} />
 }
 
 export function DrawingToolbar() {
@@ -217,7 +219,7 @@ export function DrawingToolbar() {
 
   return (
     <TooltipProvider>
-      <div className="fixed left-4 top-0 z-40 flex h-14 items-center gap-1 pointer-events-auto">
+      <div className="fixed left-4 top-0 z-40 flex flex-wrap items-center gap-1 pointer-events-auto py-2 max-md:max-w-[calc(100vw-2rem)]">
         {/* Mode Toggle — always separate */}
         <Tabs value={mode} onValueChange={(v) => setMode(v as 'cursor' | 'pen')}>
           <TabsList>
@@ -314,78 +316,92 @@ export function DrawingToolbar() {
 
             <Separator />
 
-            {/* Tool Selector */}
+            {/* Tool Selector — full on desktop, brush+eraser on mobile */}
             <ToggleGroup
               value={[activeTool]}
               onValueChange={handleToolChange}
               size="sm"
             >
-              {TOOLS.map(({ value, label, icon: Icon }) => (
-                <ToggleGroupItem key={value} value={value} aria-label={label}>
-                  <Icon className="size-3.5" />
-                </ToggleGroupItem>
-              ))}
+              {/* Mobile: only brush + eraser */}
+              <div className="flex md:hidden">
+                {MOBILE_TOOLS.map(({ value, label, icon: Icon }) => (
+                  <ToggleGroupItem key={value} value={value} aria-label={label}>
+                    <Icon className="size-3.5" />
+                  </ToggleGroupItem>
+                ))}
+              </div>
+              {/* Desktop: all tools */}
+              <div className="hidden md:flex">
+                {TOOLS.map(({ value, label, icon: Icon }) => (
+                  <ToggleGroupItem key={value} value={value} aria-label={label}>
+                    <Icon className="size-3.5" />
+                  </ToggleGroupItem>
+                ))}
+              </div>
             </ToggleGroup>
 
-            <Separator />
+            {/* Desktop only: shape fill mode + brush size */}
+            <div className="hidden md:contents">
+              <Separator />
 
-            {/* Contextual Sub-options */}
-            <div className="flex items-center gap-1.5">
-              {/* Fill mode for shapes */}
-              <AnimatePresence>
-                {SHAPE_TOOLS.includes(activeTool) && (
-                  <motion.div
-                    key="fill-mode"
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 'auto', opacity: 1, transition: transitions.normal }}
-                    exit={{ width: 0, opacity: 0, transition: transitions.fast }}
-                    className="overflow-hidden"
-                  >
-                    <ToggleGroup
-                      value={[fillMode]}
-                      onValueChange={handleFillModeChange}
-                      size="sm"
+              {/* Contextual Sub-options */}
+              <div className="flex items-center gap-1.5">
+                {/* Fill mode for shapes */}
+                <AnimatePresence>
+                  {SHAPE_TOOLS.includes(activeTool) && (
+                    <motion.div
+                      key="fill-mode"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 'auto', opacity: 1, transition: transitions.normal }}
+                      exit={{ width: 0, opacity: 0, transition: transitions.fast }}
+                      className="overflow-hidden"
                     >
-                      <ToggleGroupItem value="outline" aria-label="Outline">
-                        <SquareDashed className="size-3.5" />
-                      </ToggleGroupItem>
-                      <ToggleGroupItem value="filled" aria-label="Filled">
-                        <SquareIcon className="size-3.5 fill-current" />
-                      </ToggleGroupItem>
-                    </ToggleGroup>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      <ToggleGroup
+                        value={[fillMode]}
+                        onValueChange={handleFillModeChange}
+                        size="sm"
+                      >
+                        <ToggleGroupItem value="outline" aria-label="Outline">
+                          <SquareDashed className="size-3.5" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="filled" aria-label="Filled">
+                          <SquareIcon className="size-3.5 fill-current" />
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              {/* Brush size input */}
-              {TOOLS_WITH_SIZE.includes(activeTool) ? (
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={sizeInput}
-                  onChange={(e) => {
-                    const raw = e.target.value.replace(/[^0-9]/g, '')
-                    setSizeInput(raw)
-                  }}
-                  onBlur={() => {
-                    const num = parseInt(sizeInput, 10)
-                    if (isNaN(num) || num < 1) {
-                      setBrushSize(1)
-                      setSizeInput('1')
-                    } else if (num > MAX_BRUSH_SIZE) {
-                      setBrushSize(MAX_BRUSH_SIZE)
-                      setSizeInput(String(MAX_BRUSH_SIZE))
-                    } else {
-                      setBrushSize(num)
-                      setSizeInput(String(num))
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
-                  }}
-                  className="w-9 h-6 text-xs text-foreground tabular-nums text-center rounded-md border border-foreground/15 bg-background outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 px-1"
-                />
-              ) : null}
+                {/* Brush size input */}
+                {TOOLS_WITH_SIZE.includes(activeTool) ? (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={sizeInput}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, '')
+                      setSizeInput(raw)
+                    }}
+                    onBlur={() => {
+                      const num = parseInt(sizeInput, 10)
+                      if (isNaN(num) || num < 1) {
+                        setBrushSize(1)
+                        setSizeInput('1')
+                      } else if (num > MAX_BRUSH_SIZE) {
+                        setBrushSize(MAX_BRUSH_SIZE)
+                        setSizeInput(String(MAX_BRUSH_SIZE))
+                      } else {
+                        setBrushSize(num)
+                        setSizeInput(String(num))
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                    }}
+                    className="w-9 h-6 text-xs text-foreground tabular-nums text-center rounded-md border border-foreground/15 bg-background outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 px-1"
+                  />
+                ) : null}
+              </div>
             </div>
 
             <Separator />

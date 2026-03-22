@@ -152,22 +152,50 @@ export default function DocsLayout({
               {children}
             </div>
           </div>
-          <footer className="flex shrink-0 flex-wrap items-center justify-between gap-4 px-6 py-4 font-mono text-xs text-muted-foreground">
-            <div className="flex items-center gap-3">
-              <span className="text-primary font-medium">{localTime}</span>
-              <span className="opacity-50">·</span>
-              <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Instagram</a>
-              <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">LinkedIn</a>
-              <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">GitHub</a>
-              <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">YouTube</a>
-              <span className="opacity-50">·</span>
-              <a href="/doom" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Doom</a>
-              <a href="/gallery" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Gallery</a>
+          <footer className="shrink-0 px-6 py-4 font-mono text-xs text-muted-foreground">
+            {/* Desktop: single row */}
+            <div className="hidden md:flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-primary font-medium">{localTime}</span>
+                <span className="opacity-50">·</span>
+                <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Instagram</a>
+                <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">LinkedIn</a>
+                <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">GitHub</a>
+                <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">YouTube</a>
+                <span className="opacity-50">·</span>
+                <a href="/doom" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Doom</a>
+                <a href="/gallery" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Gallery</a>
+              </div>
+              <div className="flex items-center gap-4">
+                {mounted && (
+                  <span className="flex items-center gap-1">
+                    {(["light", "dark", "system"] as const).map((t, i) => (
+                      <React.Fragment key={t}>
+                        {i > 0 && <span className="opacity-50">·</span>}
+                        <button
+                          type="button"
+                          onClick={() => setTheme(t)}
+                          className={`capitalize transition-colors hover:text-foreground ${
+                            (theme ?? "system") === t ? "text-foreground font-medium" : ""
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      </React.Fragment>
+                    ))}
+                  </span>
+                )}
+                <span>© {new Date().getFullYear()}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              {mounted && (
-                <span className="flex items-center gap-1">
-                  {(["light", "dark", "system"] as const).map((t, i) => (
+
+            {/* Mobile: stacked rows */}
+            <div className="flex flex-col gap-2 md:hidden">
+              {/* Row 1: time + theme + year */}
+              <div className="flex items-center justify-between">
+                <span className="text-primary font-medium">{localTime}</span>
+                <div className="flex items-center gap-1">
+                  {mounted && (["light", "dark", "system"] as const).map((t, i) => (
                     <React.Fragment key={t}>
                       {i > 0 && <span className="opacity-50">·</span>}
                       <button
@@ -181,9 +209,20 @@ export default function DocsLayout({
                       </button>
                     </React.Fragment>
                   ))}
-                </span>
-              )}
-              <span>© {new Date().getFullYear()}</span>
+                  <span className="opacity-50 ml-1">·</span>
+                  <span className="ml-1">© {new Date().getFullYear()}</span>
+                </div>
+              </div>
+              {/* Row 2: links */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Instagram</a>
+                <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">LinkedIn</a>
+                <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">GitHub</a>
+                <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">YouTube</a>
+                <span className="opacity-50">·</span>
+                <a href="/doom" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Doom</a>
+                <a href="/gallery" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Gallery</a>
+              </div>
             </div>
           </footer>
         </SidebarInset>
