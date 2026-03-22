@@ -107,17 +107,37 @@ export function DrawingProvider({ children }: { children: React.ReactNode }) {
 
   const saveCanvas = useCallback(async (): Promise<GalleryEntry | null> => {
     try {
-      const html2canvas = (await import('html2canvas')).default
-      const target = document.querySelector('main') || document.body
-      const canvas = await html2canvas(target, {
-        useCORS: true,
-        scale: 1,
-        width: window.innerWidth,
-        height: window.innerHeight,
-      })
-      const dataUrl = canvas.toDataURL('image/png')
-      return saveToGallery(dataUrl, canvas.width, canvas.height)
-    } catch {
+      // Use the p5 canvas directly — html2canvas can't reliably capture WebGL/p5 canvases
+      const p5Canvas = p5Ref.current
+      if (!p5Canvas) return null
+
+      const cnv = (p5Canvas as unknown as { canvas: HTMLCanvasElement }).canvas
+        ?? document.querySelector('canvas')
+      if (!cnv) return null
+
+      // Composite: background color + drawing
+      const w = cnv.width
+      const h = cnv.height
+      const offscreen = document.createElement('canvas')
+      offscreen.width = w
+      offscreen.height = h
+      const ctx = offscreen.getContext('2d')
+      if (!ctx) return null
+
+      // Fill with page background color
+      const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--background').trim()
+      ctx.fillStyle = bgColor.startsWith('#') || bgColor.startsWith('rgb')
+        ? bgColor
+        : `oklch(${bgColor})`
+      ctx.fillRect(0, 0, w, h)
+
+      // Draw the p5 canvas on top
+      ctx.drawImage(cnv, 0, 0)
+
+      const dataUrl = offscreen.toDataURL('image/png')
+      return saveToGallery(dataUrl, w, h)
+    } catch (err) {
+      console.error('Save failed:', err)
       return null
     }
   }, [])
