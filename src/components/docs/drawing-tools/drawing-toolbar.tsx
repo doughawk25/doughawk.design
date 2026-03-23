@@ -249,17 +249,7 @@ export function DrawingToolbar() {
           </Button>
         )}
 
-        {/* Save + Trash — next to mode switcher */}
-        {canUndo && (
-          <Button
-            onClick={handleSave}
-            variant="secondary"
-            size="icon"
-            aria-label="Save to gallery"
-          >
-            <Save className="h-3.5 w-3.5" />
-          </Button>
-        )}
+        {/* Trash — next to mode switcher */}
         {canUndo && (
           <Button
             ref={trashRef}
