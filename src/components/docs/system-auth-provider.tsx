@@ -37,7 +37,7 @@ function setStoredAuth() {
   }
 }
 
-const LOCKED_PATHS = ["/about", "/contact", "/work", "/archive", "/system"]
+const LOCKED_PATHS = ["/about", "/contact", "/work", "/archive"]
 
 const SystemAuthContext = React.createContext<{
   isAuthenticated: boolean

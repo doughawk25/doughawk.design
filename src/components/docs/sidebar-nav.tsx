@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { navigation } from "@/lib/tokens"
+import { LogoMark } from "@/components/docs/logo-mark"
 import {
   Sidebar,
   SidebarContent,
@@ -22,9 +23,7 @@ export function DocsSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <Link href="/system" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold">
-            M
-          </div>
+          <LogoMark size={28} />
           <span className="text-lg font-semibold tracking-tight">Monad</span>
         </Link>
       </SidebarHeader>
