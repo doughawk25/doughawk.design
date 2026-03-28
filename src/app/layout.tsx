@@ -16,7 +16,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Monad — Design System",
+  title: "Doug Hawk Design",
   description: "Foundation, tokens, components, and motion for the Monad design system.",
 }
 
