@@ -219,7 +219,7 @@ export function DrawingToolbar() {
 
   return (
     <TooltipProvider>
-      <div className="fixed left-4 top-0 z-40 flex flex-wrap items-center gap-1 pointer-events-auto py-2 max-md:max-w-[calc(100vw-2rem)]">
+      <div className="fixed left-4 top-0 z-40 flex items-center gap-1 pointer-events-auto h-14 max-md:max-w-[calc(100vw-2rem)]">
         {/* Mode Toggle — always separate */}
         <Tabs value={mode} onValueChange={(v) => setMode(v as 'cursor' | 'pen')}>
           <TabsList>

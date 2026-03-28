@@ -27,9 +27,9 @@ const container = {
 }
 
 const navItem = {
-  initial: { x: 12, opacity: 0 },
+  initial: { x: -12, opacity: 0 },
   animate: { x: 0, opacity: 1, transition: transitions.normal },
-  exit: { x: 12, opacity: 0, transition: transitions.fast },
+  exit: { x: -12, opacity: 0, transition: transitions.fast },
 }
 
 export function HomeNav() {
@@ -39,7 +39,7 @@ export function HomeNav() {
 
   return (
     <motion.nav
-      className="relative flex w-48 flex-col gap-2 items-end text-right"
+      className="relative flex w-48 flex-col gap-2 items-start text-left"
       onMouseLeave={() => setHoveredIndex(null)}
       variants={container}
       initial="initial"
@@ -49,7 +49,7 @@ export function HomeNav() {
       {items.map((item, i) => (
         <motion.div key={item.href} variants={navItem}>
           <motion.div
-            animate={{ x: hoveredIndex === i ? -6 : 0 }}
+            animate={{ x: hoveredIndex === i ? 6 : 0 }}
             transition={{ duration: 0.4, ease: [0, 0, 0.2, 1] }}
           >
             <Link
@@ -63,7 +63,7 @@ export function HomeNav() {
                   : undefined
               }
               className={cn(
-                "relative z-10 flex w-full items-center justify-end rounded-lg text-xl font-semibold transition-colors duration-400 ease-out",
+                "relative z-10 flex w-full items-center justify-start rounded-lg text-xl font-semibold transition-colors duration-400 ease-out",
                 (hoveredIndex === null || hoveredIndex === i) ? "text-primary" : "text-muted-foreground/50"
               )}
               onMouseEnter={() => setHoveredIndex(i)}

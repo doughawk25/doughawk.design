@@ -1,7 +1,7 @@
 'use client'
 
 import { HomeNav } from "@/components/docs/home-nav"
-import { DrawingProvider, useDrawingContext } from "@/context/drawing-context"
+import { useDrawingContext } from "@/context/drawing-context"
 import { DrawingToolbar, DrawingCanvasOverlay } from "@/components/docs/drawing-tools"
 import { AnimatePresence } from "framer-motion"
 
@@ -10,7 +10,7 @@ function HomeContent() {
 
   return (
     <main className="flex min-h-full w-full flex-col justify-center bg-background">
-      <div className="relative w-full h-full flex items-center justify-end">
+      <div className="relative w-full h-full flex items-center justify-start">
         <AnimatePresence>
           {mode !== 'pen' && (
             <div className="relative z-40 pointer-events-auto">
@@ -26,9 +26,5 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <DrawingProvider>
-      <HomeContent />
-    </DrawingProvider>
-  )
+  return <HomeContent />
 }

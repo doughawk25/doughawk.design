@@ -16,8 +16,11 @@ import {
 } from "@/components/ui/breadcrumb"
 import { useTheme } from "next-themes"
 import { DocsSidebar } from "@/components/docs/sidebar-nav"
+import { motion } from "framer-motion"
+import { transitions } from "@/lib/motion"
 import { Logo } from "@/components/docs/logo"
 import { SystemAuthProvider } from "@/components/docs/system-auth-provider"
+import { DrawingProvider, useDrawingContext } from "@/context/drawing-context"
 
 function SidebarOpenOnSystemNav() {
   const pathname = usePathname()
@@ -45,6 +48,25 @@ function SidebarOpenOnSystemNav() {
   }, [pathname, isMobile, setOpen, setOpenMobile])
 
   return null
+}
+
+function HomeLogo({ isHome }: { isHome: boolean }) {
+  const { mode } = useDrawingContext()
+  const isSmall = !isHome || mode === 'pen'
+  return (
+    <Link
+      href="/"
+      className="fixed top-3 right-4 z-50"
+      aria-label="Monad home"
+    >
+      <motion.div
+        animate={{ height: isSmall ? 32 : 80 }}
+        transition={transitions.fast}
+      >
+        <Logo className="h-full w-auto text-foreground" aria-hidden />
+      </motion.div>
+    </Link>
+  )
 }
 
 function formatSegment(segment: string): string {
@@ -82,6 +104,7 @@ export default function DocsLayout({
     pathname === "/motion"
 
   return (
+    <DrawingProvider>
     <SystemAuthProvider pathname={pathname}>
     <TooltipProvider>
       <SidebarProvider className="h-dvh overflow-hidden">
@@ -131,13 +154,7 @@ export default function DocsLayout({
                 </BreadcrumbList>
               </Breadcrumb>
             )}
-            <Link
-              href="/"
-              className={pathname === "/" ? "ml-auto" : ""}
-              aria-label="Monad home"
-            >
-              <Logo className="h-8 w-auto text-foreground" aria-hidden />
-            </Link>
+            <HomeLogo isHome={pathname === "/"} />
           </header>
           <div className="min-h-0 flex-1 overflow-auto">
             <div
@@ -225,5 +242,6 @@ export default function DocsLayout({
       </SidebarProvider>
     </TooltipProvider>
     </SystemAuthProvider>
+    </DrawingProvider>
   )
 }
