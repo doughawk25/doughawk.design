@@ -273,7 +273,7 @@ export function DrawingToolbar() {
             <motion.div
               key="tool-menu"
               {...slideFromLeft}
-              className="flex items-center gap-1 rounded-full border border-foreground/10 bg-background/90 backdrop-blur-md px-[6px] py-[2px] shadow-xs dark:bg-background/80 dark:border-foreground/15"
+              className="flex items-center gap-2 rounded-full border border-border bg-background/90 backdrop-blur-md px-[6px] py-[2px] shadow-xs dark:bg-muted"
             >
             {/* Color swatch — far left */}
             <div className="flex items-center gap-1.5">
@@ -332,8 +332,7 @@ export function DrawingToolbar() {
               </AnimatePresence>
             </div>
 
-            <Separator />
-
+            
             {/* Tool Selector — full on desktop, brush+eraser on mobile */}
             <ToggleGroup
               value={[activeTool]}
@@ -360,8 +359,7 @@ export function DrawingToolbar() {
 
             {/* Desktop only: shape fill mode + brush size */}
             <div className="hidden md:contents">
-              <Separator />
-
+              
               {/* Contextual Sub-options */}
               <div className="flex items-center gap-1.5">
                 {/* Fill mode for shapes */}
@@ -416,14 +414,13 @@ export function DrawingToolbar() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
                     }}
-                    className="w-9 h-6 text-xs text-foreground tabular-nums text-center rounded-md border border-foreground/15 bg-background outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 px-1"
+                    className="w-9 h-[30px] text-xs text-foreground tabular-nums text-center rounded-[min(var(--radius-component-sm),10px)] border border-border bg-background outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 px-1"
                   />
                 ) : null}
               </div>
             </div>
 
-            <Separator />
-
+            
             {/* Undo / Redo */}
             <div className="flex items-center gap-0.5">
               <Tooltip>
