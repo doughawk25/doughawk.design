@@ -27,7 +27,7 @@ export function DrawingCanvasOverlay() {
       ref={containerRef}
       className={cn(
         'fixed inset-0 z-30 [&_canvas]:!block [&_canvas]:!w-full [&_canvas]:!h-full',
-        mode === 'pen' ? `pointer-events-auto ${cursorClass}` : 'pointer-events-none'
+        mode === 'pen' ? `pointer-events-auto ${cursorClass}` : 'pointer-events-none [&_canvas]:!pointer-events-none'
       )}
       style={{
         touchAction: mode === 'pen' ? 'none' : 'auto',

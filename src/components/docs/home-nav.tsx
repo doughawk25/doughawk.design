@@ -13,7 +13,7 @@ const items = [
   { label: "Contact", href: "/contact", locked: true },
   { label: "Work", href: "/work", locked: true },
   { label: "Archive", href: "/archive", locked: true },
-  { label: "System", href: "/system", locked: true },
+  { label: "System", href: "/system", locked: false },
 ] as const
 
 const container = {
