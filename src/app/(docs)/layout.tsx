@@ -15,6 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { useTheme } from "next-themes"
+import { cn } from "@/lib/utils"
 import { DocsSidebar } from "@/components/docs/sidebar-nav"
 import { motion } from "framer-motion"
 import { transitions } from "@/lib/motion"
@@ -111,9 +112,15 @@ export default function DocsLayout({
         <SidebarOpenOnSystemNav />
         {isDesignSystemPage && <DocsSidebar />}
         <SidebarInset
-          className={isDesignSystemPage ? "min-h-dvh" : "min-h-0"}
+          className={cn(
+            isDesignSystemPage ? "min-h-dvh" : "min-h-0",
+            pathname.startsWith("/tools") && "bg-transparent"
+          )}
         >
-          <header className="flex h-14 items-center gap-2 px-4 bg-transparent backdrop-blur-md">
+          <header
+            className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center gap-2 px-4 text-white [&_*]:text-white"
+            style={{ mixBlendMode: "difference" }}
+          >
             {isDesignSystemPage && <SidebarTrigger />}
             {pathname !== "/" && (
               <Breadcrumb className="flex-1 min-w-0">
@@ -156,34 +163,21 @@ export default function DocsLayout({
             )}
             <HomeLogo isHome={pathname === "/"} />
           </header>
-          <div className="min-h-0 flex-1 overflow-auto">
-            <div
-              className={
-                pathname === "/"
-                  ? "flex min-h-full w-full max-w-none flex-col items-center justify-center px-4 py-8"
-                  : pathname === "/gallery"
-                  ? "w-full px-6 py-8"
-                  : "mx-auto max-w-4xl px-6 py-8"
-              }
-            >
+          {pathname.startsWith("/tools") ? (
+            <div className="min-h-0 flex-1 overflow-auto">
               {children}
-            </div>
-          </div>
-          <footer className="shrink-0 px-6 py-4 font-mono text-xs text-muted-foreground">
-            {/* Desktop: single row */}
-            <div className="hidden md:flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-primary font-medium">{localTime}</span>
-                <span className="opacity-50">·</span>
-                <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Instagram</a>
-                <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">LinkedIn</a>
-                <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">GitHub</a>
-                <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">YouTube</a>
-                <span className="opacity-50">·</span>
-                <a href="/doom" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Doom</a>
-              </div>
-              <div className="flex items-center gap-4">
-                {mounted && (
+              <footer
+                className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 font-mono text-xs"
+              >
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <span className="font-medium">{localTime}</span>
+                  <span className="opacity-50">·</span>
+                  <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">Instagram</a>
+                  <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">LinkedIn</a>
+                  <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">GitHub</a>
+                  <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">YouTube</a>
+                </div>
+                <div className="flex items-center gap-4 text-muted-foreground">
                   <span className="flex items-center gap-1">
                     {(["light", "dark", "system"] as const).map((t, i) => (
                       <React.Fragment key={t}>
@@ -191,8 +185,8 @@ export default function DocsLayout({
                         <button
                           type="button"
                           onClick={() => setTheme(t)}
-                          className={`capitalize transition-colors hover:text-foreground ${
-                            (theme ?? "system") === t ? "text-foreground font-medium" : ""
+                          className={`capitalize transition-opacity hover:opacity-100 ${
+                            (theme ?? "system") === t ? "opacity-100 font-medium" : "opacity-70"
                           }`}
                         >
                           {t}
@@ -200,42 +194,58 @@ export default function DocsLayout({
                       </React.Fragment>
                     ))}
                   </span>
-                )}
-                <span>© {new Date().getFullYear()}</span>
+                  <span className="opacity-70">© {new Date().getFullYear()}</span>
+                </div>
+              </footer>
+            </div>
+          ) : (
+            <div className="min-h-0 flex-1 overflow-auto pt-14">
+              <div
+                className={
+                  pathname === "/"
+                    ? "flex min-h-full w-full max-w-none flex-col items-center justify-center px-4 py-8"
+                    : pathname === "/gallery"
+                    ? "w-full px-6 py-8"
+                    : "mx-auto max-w-4xl px-6 py-8"
+                }
+              >
+                {children}
               </div>
             </div>
-
-            {/* Mobile: stacked rows */}
-            <div className="flex flex-col gap-2 md:hidden">
-              {/* Row 1: links */}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">Instagram</a>
-                <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">LinkedIn</a>
-                <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">GitHub</a>
-                <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-foreground">YouTube</a>
-              </div>
-              {/* Row 2: time + theme + year */}
-              <div className="flex items-center justify-between">
-                <span className="text-primary font-medium">{localTime}</span>
-                <div className="flex items-center gap-1">
-                  {mounted && (["light", "dark", "system"] as const).map((t, i) => (
-                    <React.Fragment key={t}>
-                      {i > 0 && <span className="opacity-50">·</span>}
-                      <button
-                        type="button"
-                        onClick={() => setTheme(t)}
-                        className={`capitalize transition-colors hover:text-foreground ${
-                          (theme ?? "system") === t ? "text-foreground font-medium" : ""
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    </React.Fragment>
-                  ))}
-                  <span className="opacity-50 ml-1">·</span>
-                  <span className="ml-1">© {new Date().getFullYear()}</span>
-                </div>
-              </div>
+          )}
+          <footer
+            className={cn(
+              "pointer-events-auto flex flex-wrap items-center justify-between gap-4 px-6 py-4 font-mono text-xs fixed bottom-0 left-0 right-0 z-50",
+              pathname.startsWith("/tools") && "hidden"
+            )}
+            style={{ mixBlendMode: "difference" }}
+          >
+            <div className="flex items-center gap-3 text-white">
+              <span className="font-medium">{localTime}</span>
+              <span className="opacity-50">·</span>
+              <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">Instagram</a>
+              <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">LinkedIn</a>
+              <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">GitHub</a>
+              <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">YouTube</a>
+            </div>
+            <div className="flex items-center gap-4 text-white">
+              <span className="flex items-center gap-1">
+                {(["light", "dark", "system"] as const).map((t, i) => (
+                  <React.Fragment key={t}>
+                    {i > 0 && <span className="opacity-50">·</span>}
+                    <button
+                      type="button"
+                      onClick={() => setTheme(t)}
+                      className={`pointer-events-auto capitalize transition-opacity hover:opacity-100 ${
+                        (theme ?? "system") === t ? "opacity-100 font-medium" : "opacity-70"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  </React.Fragment>
+                ))}
+              </span>
+              <span className="opacity-70">© {new Date().getFullYear()}</span>
             </div>
           </footer>
         </SidebarInset>
