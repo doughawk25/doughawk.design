@@ -155,6 +155,9 @@ export function DrawingToolbar() {
     saveCanvas,
   } = useDrawingContext()
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [colorPickerOpen, setColorPickerOpen] = useState(true)
   const [sizeInput, setSizeInput] = useState(String(brushSize))
@@ -216,6 +219,8 @@ export function DrawingToolbar() {
       setFillMode(values[0] as FillMode)
     }
   }
+
+  if (!mounted) return null
 
   return (
     <TooltipProvider>

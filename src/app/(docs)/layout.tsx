@@ -118,7 +118,7 @@ export default function DocsLayout({
           )}
         >
           <header
-            className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center gap-2 px-4"
+            className="sticky top-0 z-50 flex h-14 items-center gap-2 px-4 pointer-events-none [&>*]:pointer-events-auto"
           >
             {isDesignSystemPage && <SidebarTrigger />}
             {pathname !== "/" && (

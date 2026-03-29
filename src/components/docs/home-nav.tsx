@@ -40,7 +40,7 @@ export function HomeNav() {
 
   return (
     <motion.nav
-      className="relative flex w-48 flex-col gap-2 items-start text-left"
+      className="relative flex w-48 flex-col gap-1 items-start text-left"
       onMouseLeave={() => setHoveredIndex(null)}
       variants={container}
       initial="initial"
@@ -64,7 +64,7 @@ export function HomeNav() {
                   : undefined
               }
               className={cn(
-                "relative z-10 flex w-full items-center justify-start rounded-lg text-xl font-semibold transition-colors duration-400 ease-out",
+                "relative z-10 flex w-full items-center justify-start rounded-lg text-base font-medium transition-colors duration-400 ease-out",
                 (hoveredIndex === null || hoveredIndex === i) ? "text-primary" : "text-muted-foreground/50"
               )}
               onMouseEnter={() => setHoveredIndex(i)}
