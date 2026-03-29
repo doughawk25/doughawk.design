@@ -53,7 +53,7 @@ function SidebarOpenOnSystemNav() {
 
 function HomeLogo({ isHome }: { isHome: boolean }) {
   const { mode } = useDrawingContext()
-  const isSmall = !isHome || mode === 'pen'
+  const isSmall = true
   return (
     <Link
       href="/"
