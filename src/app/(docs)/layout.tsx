@@ -56,11 +56,11 @@ function HomeLogo({ isHome }: { isHome: boolean }) {
   return (
     <Link
       href="/"
-      className="fixed top-3 right-4 z-50"
+      className="fixed top-3 right-6 z-50"
       aria-label="Monad home"
     >
       <motion.div
-        animate={{ height: isSmall ? 32 : 80 }}
+        animate={{ height: isSmall ? 32 : 96 }}
         transition={transitions.fast}
       >
         <Logo className="h-full w-auto text-foreground" aria-hidden />

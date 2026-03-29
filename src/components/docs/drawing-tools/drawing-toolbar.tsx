@@ -414,13 +414,14 @@ export function DrawingToolbar() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
                     }}
-                    className="w-9 h-[30px] text-xs text-foreground tabular-nums text-center rounded-[min(var(--radius-component-sm),10px)] border border-border bg-background outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 px-1"
+                    className="w-9 h-[30px] text-xs text-foreground tabular-nums text-center rounded-[min(var(--radius-component-sm),10px)] border border-border bg-transparent outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20 px-1"
                   />
                 ) : null}
               </div>
             </div>
 
-            
+            <Separator />
+
             {/* Undo / Redo */}
             <div className="flex items-center gap-0.5">
               <Tooltip>
