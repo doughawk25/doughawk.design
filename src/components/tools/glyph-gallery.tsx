@@ -88,13 +88,13 @@ function AddButton({ onAdd }: { onAdd: () => void }) {
       e.stopPropagation()
       onAdd()
       setConfirmed(true)
-      clearTimeout(timerRef.current)
+      if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => setConfirmed(false), 1200)
     },
     [onAdd]
   )
 
-  useEffect(() => () => clearTimeout(timerRef.current), [])
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   return (
     <button
