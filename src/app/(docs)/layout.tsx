@@ -166,37 +166,6 @@ export default function DocsLayout({
           {pathname.startsWith("/tools") ? (
             <div className="min-h-0 flex-1 overflow-auto">
               {children}
-              <footer
-                className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 font-mono text-xs"
-              >
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <span className="font-medium">{localTime}</span>
-                  <span className="opacity-50">·</span>
-                  <a href="https://www.instagram.com/_d0u9/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">Instagram</a>
-                  <a href="https://www.linkedin.com/in/doughawk25/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">LinkedIn</a>
-                  <a href="https://github.com/doughawk25" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">GitHub</a>
-                  <a href="https://www.youtube.com/playlist?list=PLeRINMiW66O7u5E6y8MXTRd9VFbxGI7Jo" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-opacity hover:opacity-100">YouTube</a>
-                </div>
-                <div className="flex items-center gap-4 text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    {(["light", "dark", "system"] as const).map((t, i) => (
-                      <React.Fragment key={t}>
-                        {i > 0 && <span className="opacity-50">·</span>}
-                        <button
-                          type="button"
-                          onClick={() => setTheme(t)}
-                          className={`capitalize transition-opacity hover:opacity-100 ${
-                            (theme ?? "system") === t ? "opacity-100 font-medium" : "opacity-70"
-                          }`}
-                        >
-                          {t}
-                        </button>
-                      </React.Fragment>
-                    ))}
-                  </span>
-                  <span className="opacity-70">© {new Date().getFullYear()}</span>
-                </div>
-              </footer>
             </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-auto pt-14">

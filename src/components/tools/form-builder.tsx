@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useRef, useState, useEffect } from "react"
+import { ArrowUp } from "lucide-react"
 import { useFormState } from "./use-form-state"
 import { FormCanvas, nodePosFromIndex, PAD, CELL } from "./form-canvas"
 import { FormSidebar } from "./form-sidebar"
@@ -180,6 +181,19 @@ export function FormBuilder() {
           glyphVisible={glyphVisible}
         />
       </div>
+      {/* Scroll to top */}
+      <button
+        type="button"
+        onClick={() => {
+          canvasRef.current?.scrollIntoView({ behavior: "smooth" })
+        }}
+        className={`fixed bottom-14 right-4 z-40 size-8 rounded-full border border-border bg-background/95 backdrop-blur-sm flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-300 ${
+          glyphVisible ? "opacity-0 pointer-events-none scale-90" : "opacity-100 scale-100"
+        }`}
+        title="Scroll to top"
+      >
+        <ArrowUp className="size-3.5" />
+      </button>
       {/* Folder modal */}
       <GlyphFolder
         open={folderOpen}
