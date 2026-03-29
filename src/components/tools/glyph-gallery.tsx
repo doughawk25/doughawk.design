@@ -199,9 +199,9 @@ function GlyphRow({
     if (!el) return
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setVisible(entry.isIntersecting)
+        if (entry.isIntersecting) setVisible(true)
       },
-      { rootMargin: "400px" }
+      { rootMargin: "200px" }
     )
     observer.observe(el)
     return () => observer.disconnect()
