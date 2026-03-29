@@ -303,9 +303,9 @@ export function useP5FormCanvas(props: UseP5FormCanvasProps) {
               p.stroke(mutedColor)
               p.strokeWeight(2)
               p.strokeCap(p.ROUND)
-              p.drawingContext.setLineDash([6, 4])
+              ;(p.drawingContext as CanvasRenderingContext2D).setLineDash([6, 4])
               p.line(sourcePos.x, sourcePos.y, logicalMouse.x, logicalMouse.y)
-              p.drawingContext.setLineDash([])
+              ;(p.drawingContext as CanvasRenderingContext2D).setLineDash([])
             }
             p.pop()
           }
