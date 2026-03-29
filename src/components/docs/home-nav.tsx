@@ -13,6 +13,7 @@ const items = [
   { label: "Contact", href: "/contact", locked: true },
   { label: "About", href: "/about", locked: true },
   { label: "Archive", href: "/archive", locked: true },
+  { label: "Tools", href: "/tools", locked: false },
   { label: "System", href: "/system", locked: false },
 ] as const
 
