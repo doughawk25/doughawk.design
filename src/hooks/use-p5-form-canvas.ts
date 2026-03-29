@@ -265,13 +265,13 @@ export function useP5FormCanvas(props: UseP5FormCanvasProps) {
           p.scale(scale)
           p.noStroke()
           p.fill(mutedColor)
-          p.drawingContext.globalAlpha = 0.2
+          ;(p.drawingContext as CanvasRenderingContext2D).globalAlpha = 0.2
           for (let i = 0; i < gridSize * gridSize; i++) {
             if (activeNodes.has(i)) continue
             const pos = nodePosFromIndex(i, gridSize)
             p.circle(pos.x, pos.y, 6)
           }
-          p.drawingContext.globalAlpha = 1
+          ;(p.drawingContext as CanvasRenderingContext2D).globalAlpha = 1
           p.pop()
 
           // Render metaball
