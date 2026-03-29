@@ -81,7 +81,7 @@ interface FlatEntry {
 /** Add-to-folder button with confirmation animation */
 function AddButton({ onAdd }: { onAdd: () => void }) {
   const [confirmed, setConfirmed] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
